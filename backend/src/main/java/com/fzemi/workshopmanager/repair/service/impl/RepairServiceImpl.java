@@ -1,13 +1,11 @@
 package com.fzemi.workshopmanager.repair.service.impl;
 
 import com.fzemi.workshopmanager.client.entity.Client;
-import com.fzemi.workshopmanager.client.repository.ClientRepository;
 import com.fzemi.workshopmanager.repair.entity.Repair;
 import com.fzemi.workshopmanager.repair.repository.RepairRepository;
 import com.fzemi.workshopmanager.repair.service.RepairService;
 import com.fzemi.workshopmanager.vehicle.entity.Vehicle;
 import com.fzemi.workshopmanager.vehicle.repository.VehicleRepository;
-import com.fzemi.workshopmanager.vehicle.service.VehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,16 +16,13 @@ import java.util.Optional;
 public class RepairServiceImpl implements RepairService {
     private final RepairRepository repairRepository;
     private final VehicleRepository vehicleRepository;
-    private final ClientRepository clientRepository;
 
     @Autowired
     public RepairServiceImpl(
             RepairRepository repairRepository,
-            VehicleRepository vehicleRepository,
-            ClientRepository clientRepository) {
+            VehicleRepository vehicleRepository) {
         this.repairRepository = repairRepository;
         this.vehicleRepository = vehicleRepository;
-        this.clientRepository = clientRepository;
     }
 
     @Override
@@ -63,13 +58,6 @@ public class RepairServiceImpl implements RepairService {
                         Optional<Vehicle> foundVehicle = vehicleRepository.findById(repair.getVehicle().getId());
 
                         foundVehicle.ifPresent(existingRepair::setVehicle);
-                    }
-
-                    // look for existing client and assign it to the repair
-                    if (repair.getClient() != null && repair.getClient().getId() != null) {
-                        Optional<Client> foundClient = clientRepository.findById(repair.getClient().getId());
-
-                        foundClient.ifPresent(existingRepair::setClient);
                     }
 
                     return repairRepository.save(existingRepair);
