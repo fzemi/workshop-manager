@@ -1,7 +1,5 @@
 package com.fzemi.workshopmanager.client.entity;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fzemi.workshopmanager.vehicle.entity.Vehicle;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,10 +14,6 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "clients")
-@JsonIdentityInfo(
-        generator = ObjectIdGenerators.PropertyGenerator.class,
-        property = "id"
-)
 public class Client {
     // TODO: Find a way to make pesel, nip and email unique and nullable at the same time
 
@@ -50,6 +44,6 @@ public class Client {
     @Temporal(TemporalType.DATE)
     private Date birthDate;
 
-    @ManyToMany
+    @ManyToMany(mappedBy = "clients")
     private List<Vehicle> vehicles;
 }

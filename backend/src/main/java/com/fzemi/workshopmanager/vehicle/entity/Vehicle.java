@@ -1,7 +1,5 @@
 package com.fzemi.workshopmanager.vehicle.entity;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fzemi.workshopmanager.client.entity.Client;
 import com.fzemi.workshopmanager.vehicle.config.FuelFormat;
 import jakarta.persistence.*;
@@ -17,10 +15,6 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "vehicles")
-@JsonIdentityInfo(
-        generator = ObjectIdGenerators.PropertyGenerator.class,
-        property = "id"
-)
 public class Vehicle {
 
     @Id
@@ -51,5 +45,10 @@ public class Vehicle {
     private Integer power;
 
     @ManyToMany
+    @JoinTable(
+            name = "vehicle_client",
+            joinColumns = @JoinColumn(name = "vehicle_id"),
+            inverseJoinColumns = @JoinColumn(name = "client_id")
+    )
     private List<Client> clients;
 }

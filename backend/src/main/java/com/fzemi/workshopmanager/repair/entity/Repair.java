@@ -1,5 +1,6 @@
 package com.fzemi.workshopmanager.repair.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fzemi.workshopmanager.client.entity.Client;
 import com.fzemi.workshopmanager.repair.config.RepairTypeFormat;
 import com.fzemi.workshopmanager.vehicle.entity.Vehicle;
@@ -8,6 +9,7 @@ import lombok.*;
 import org.hibernate.annotations.Cascade;
 
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -41,4 +43,9 @@ public class Repair {
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "vehicle_id")
     private Vehicle vehicle;
+
+    @JsonIgnore
+    public List<Client> getClients() {
+        return vehicle.getClients();
+    }
 }
