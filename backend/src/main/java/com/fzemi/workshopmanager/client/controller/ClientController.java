@@ -1,5 +1,6 @@
 package com.fzemi.workshopmanager.client.controller;
 
+import com.fzemi.workshopmanager.client.dto.ClientDTO;
 import com.fzemi.workshopmanager.client.entity.Client;
 import com.fzemi.workshopmanager.client.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,53 +22,53 @@ public class ClientController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Client>> listClients() {
+    public ResponseEntity<List<ClientDTO>> listClients() {
         return ResponseEntity.ok(clientService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Client> findClientById(@PathVariable Long id) {
-        Optional<Client> foundClient = clientService.findClientById(id);
-        return foundClient.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ClientDTO> findClientById(@PathVariable Long id) {
+        Optional<ClientDTO> foundClientDTO = clientService.findClientById(id);
+        return foundClientDTO.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/surname/{surname}")
-    public ResponseEntity<List<Client>> findClientsBySurname(@PathVariable String surname) {
+    public ResponseEntity<List<ClientDTO>> findClientsBySurname(@PathVariable String surname) {
         return ResponseEntity.ok(clientService.findClientsBySurname(surname));
     }
 
     @PostMapping
-    public ResponseEntity<Client> createClient(@RequestBody Client client) {
-        Client createdClient = clientService.save(client);
-        return new ResponseEntity<>(createdClient, HttpStatus.CREATED);
+    public ResponseEntity<ClientDTO> createClient(@RequestBody Client client) {
+        ClientDTO createdClientDTO = clientService.save(client);
+        return new ResponseEntity<>(createdClientDTO, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Client> fullUpdateClient(
+    public ResponseEntity<ClientDTO> fullUpdateClient(
             @PathVariable Long id,
             @RequestBody Client client) {
-        Optional<Client> foundClient = clientService.findClientById(id);
+        Optional<ClientDTO> foundClientDTO = clientService.findClientById(id);
 
-        if (foundClient.isEmpty()) {
+        if (foundClientDTO.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
         client.setId(id);
-        Client updatedClient = clientService.save(client);
-        return new ResponseEntity<>(updatedClient, HttpStatus.OK);
+        ClientDTO updatedClientDTO = clientService.save(client);
+        return new ResponseEntity<>(updatedClientDTO, HttpStatus.OK);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Client> partialUpdateClient(
+    public ResponseEntity<ClientDTO> partialUpdateClient(
             @PathVariable Long id,
             @RequestBody Client client) {
-        Optional<Client> foundClient = clientService.findClientById(id);
+        Optional<ClientDTO> foundClientDTO = clientService.findClientById(id);
 
-        if (foundClient.isEmpty()) {
+        if (foundClientDTO.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        Client updatedClient = clientService.partialUpdate(id, client);
-        return new ResponseEntity<>(updatedClient, HttpStatus.OK);
+        ClientDTO updatedClientDTO = clientService.partialUpdate(id, client);
+        return new ResponseEntity<>(updatedClientDTO, HttpStatus.OK);
     }
 }

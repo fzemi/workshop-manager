@@ -1,5 +1,7 @@
 package com.fzemi.workshopmanager.client.service.impl;
 
+import com.fzemi.workshopmanager.client.dto.ClientDTO;
+import com.fzemi.workshopmanager.client.dto.ClientMapper;
 import com.fzemi.workshopmanager.client.entity.Client;
 import com.fzemi.workshopmanager.client.repository.ClientRepository;
 import com.fzemi.workshopmanager.client.service.ClientService;
@@ -15,36 +17,51 @@ import java.util.Optional;
 public class ClientServiceImpl implements ClientService {
     private final ClientRepository clientRepository;
     private final VehicleRepository vehicleRepository;
+    private final ClientMapper clientMapper;
 
     @Autowired
     public ClientServiceImpl(ClientRepository clientRepository,
-                             VehicleRepository vehicleRepository) {
+                             VehicleRepository vehicleRepository,
+                             ClientMapper clientMapper) {
         this.clientRepository = clientRepository;
         this.vehicleRepository = vehicleRepository;
+        this.clientMapper = clientMapper;
     }
 
     @Override
-    public List<Client> findAll() {
-        return clientRepository.findAll();
+    public List<ClientDTO> findAll() {
+        return clientRepository.findAll().stream()
+                .map(clientMapper::toClientDTO)
+                .toList();
     }
 
     @Override
-    public Optional<Client> findClientById(Long id) {
-        return clientRepository.findById(id);
+    public Optional<ClientDTO> findClientById(Long id) {
+        return clientRepository.findById(id).map(clientMapper::toClientDTO);
     }
 
     @Override
-    public List<Client> findClientsBySurname(String surname) {
-        return clientRepository.findBySurname(surname);
+    public List<ClientDTO> findClientsBySurname(String surname) {
+        return clientRepository.findBySurname(surname).stream()
+                .map(clientMapper::toClientDTO)
+                .toList();
     }
 
     @Override
-    public Client save(Client client) {
-        return clientRepository.save(client);
+    public ClientDTO save(Client client) {
+        // Means that we are updating the client not creating a new one
+        if (client.getId() != null) {
+            Optional<Client> existingClient = clientRepository.findById(client.getId());
+            existingClient.ifPresent(value -> client.setVehicles(value.getVehicles()));
+        }
+
+        Client savedClient = clientRepository.save(client);
+
+        return clientMapper.toClientDTO(savedClient);
     }
 
     @Override
-    public Client partialUpdate(Long id, Client client) {
+    public ClientDTO partialUpdate(Long id, Client client) {
         return clientRepository.findById(id).map(existingClient -> {
                     Optional.ofNullable(client.getFirstname()).ifPresent(existingClient::setFirstname);
                     Optional.ofNullable(client.getSurname()).ifPresent(existingClient::setSurname);
@@ -59,7 +76,7 @@ public class ClientServiceImpl implements ClientService {
                     Optional.ofNullable(client.getBirthDate()).ifPresent(existingClient::setBirthDate);
 
                     // add new vehicles to the client
-                    if (!client.getVehicles().isEmpty()) {
+                    if (client.getVehicles() != null && !client.getVehicles().isEmpty()) {
                         List<Long> existingClientVehicleIds = existingClient.getVehicles().stream()
                                 .map(Vehicle::getId)
                                 .toList();
@@ -68,12 +85,16 @@ public class ClientServiceImpl implements ClientService {
                             if (!existingClientVehicleIds.contains(vehicle.getId())) {
                                 Optional<Vehicle> foundVehicle = vehicleRepository.findById(vehicle.getId());
                                 foundVehicle.ifPresent(existingClient.getVehicles()::add);
+
+                                // update the client list in the vehicle
+                                foundVehicle.ifPresent(value -> value.getClients().add(existingClient));
                             }
                         });
                     }
 
                     return clientRepository.save(existingClient);
                 })
+                .map(clientMapper::toClientDTO)
                 .orElse(null);
     }
 }

@@ -1,6 +1,9 @@
 package com.fzemi.workshopmanager.repair.service.impl;
 
 import com.fzemi.workshopmanager.client.entity.Client;
+import com.fzemi.workshopmanager.repair.dto.RepairDTO;
+import com.fzemi.workshopmanager.repair.dto.RepairMapper;
+import com.fzemi.workshopmanager.repair.dto.RepairWithClientsDTO;
 import com.fzemi.workshopmanager.repair.entity.Repair;
 import com.fzemi.workshopmanager.repair.repository.RepairRepository;
 import com.fzemi.workshopmanager.repair.service.RepairService;
@@ -16,37 +19,50 @@ import java.util.Optional;
 public class RepairServiceImpl implements RepairService {
     private final RepairRepository repairRepository;
     private final VehicleRepository vehicleRepository;
+    private final RepairMapper repairMapper;
 
     @Autowired
     public RepairServiceImpl(
             RepairRepository repairRepository,
-            VehicleRepository vehicleRepository) {
+            VehicleRepository vehicleRepository,
+            RepairMapper repairMapper) {
         this.repairRepository = repairRepository;
         this.vehicleRepository = vehicleRepository;
+        this.repairMapper = repairMapper;
     }
 
     @Override
-    public List<Repair> findAll() {
-        return repairRepository.findAll();
+    public List<RepairDTO> findAll() {
+        return repairRepository.findAll().stream()
+                .map(repairMapper::toRepairDTO)
+                .toList();
     }
 
     @Override
-    public Optional<Repair> findRepairById(Long id) {
-        return repairRepository.findById(id);
+    public List<RepairWithClientsDTO> findAllWithClients() {
+        return repairRepository.findAll().stream()
+                .map(repairMapper::toRepairWithClientsDTO)
+                .toList();
     }
 
     @Override
-    public Optional<Repair> findRepairByNumber(String number) {
-        return repairRepository.findByNumber(number);
+    public Optional<RepairDTO> findRepairById(Long id) {
+        return repairRepository.findById(id).map(repairMapper::toRepairDTO);
     }
 
     @Override
-    public Repair save(Repair repair) {
-        return repairRepository.save(repair);
+    public Optional<RepairDTO> findRepairByNumber(String number) {
+        return repairRepository.findByNumber(number).map(repairMapper::toRepairDTO);
     }
 
     @Override
-    public Repair partialUpdate(Long id, Repair repair) {
+    public RepairDTO save(Repair repair) {
+        Repair createdRepair = repairRepository.save(repair);
+        return repairMapper.toRepairDTO(createdRepair);
+    }
+
+    @Override
+    public RepairDTO partialUpdate(Long id, Repair repair) {
         return repairRepository.findById(id).map(existingRepair -> {
                     Optional.ofNullable(repair.getNumber()).ifPresent(existingRepair::setNumber);
                     Optional.ofNullable(repair.getStartDate()).ifPresent(existingRepair::setStartDate);
@@ -62,6 +78,7 @@ public class RepairServiceImpl implements RepairService {
 
                     return repairRepository.save(existingRepair);
                 })
+                .map(repairMapper::toRepairDTO)
                 .orElse(null);
     }
 

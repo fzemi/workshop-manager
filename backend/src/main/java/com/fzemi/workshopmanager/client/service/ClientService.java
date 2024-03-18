@@ -1,5 +1,6 @@
 package com.fzemi.workshopmanager.client.service;
 
+import com.fzemi.workshopmanager.client.dto.ClientDTO;
 import com.fzemi.workshopmanager.client.entity.Client;
 
 import java.util.List;
@@ -7,36 +8,36 @@ import java.util.Optional;
 
 public interface ClientService {
     /**
-     * @return all clients
+     * @return all clientDTOs
      */
-    List<Client> findAll();
+    List<ClientDTO> findAll();
 
     /**
      * @param id client's id
-     * @return client with the given id
+     * @return clientDTO with the given id
      */
-    Optional<Client> findClientById(Long id);
+    Optional<ClientDTO> findClientById(Long id);
 
     /**
      * @param surname client's surname
-     * @return list of clients with the given surname
+     * @return list of clientsDTOs with the given surname
      */
-    List<Client> findClientsBySurname(String surname);
+    List<ClientDTO> findClientsBySurname(String surname);
 
     /**
      * Creates a new client or fully updates an existing one
      *
      * @param client new client
-     * @return created client
+     * @return created clientDTO
      */
-    Client save(Client client);
+    ClientDTO save(Client client);
 
     /**
      * Partially updates an existing client
      *
-     * @param id existing client's id
+     * @param id     existing client's id
      * @param client client with updated fields
-     * @return updated client
+     * @return updated clientDTO
      */
-    Client partialUpdate(Long id, Client client);
+    ClientDTO partialUpdate(Long id, Client client);
 }
