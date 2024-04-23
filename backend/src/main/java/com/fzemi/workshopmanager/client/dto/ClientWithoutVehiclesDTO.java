@@ -4,6 +4,10 @@ import lombok.Builder;
 
 import java.util.Date;
 
+/**
+ * DTO for Client entity without vehicles.
+ * Resolves infinite recursion in JSON serialization.
+ */
 @Builder
 public record ClientWithoutVehiclesDTO(
         Long id,
