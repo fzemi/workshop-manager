@@ -14,8 +14,6 @@ on:
       - backend/**
       - .github/workflows/**
 
-permissions: write-all
-
 jobs:
   build:
     runs-on: ubuntu-latest
