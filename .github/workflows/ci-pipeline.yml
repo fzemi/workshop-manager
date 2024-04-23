@@ -31,6 +31,10 @@ jobs:
           java-version: '17'
           distribution: 'zulu'
 
+      # Windows related permission fix
+      - name: Set executable permission for mvnw
+        run: chmod +x backend/mvnw
+
       - name: Build with Maven
         run: |
           cd backend
@@ -52,6 +56,10 @@ jobs:
         with:
           java-version: '17'
           distribution: 'zulu'
+
+      # Windows related permission fix
+      - name: Set executable permission for mvnw
+        run: chmod +x backend/mvnw
 
       - name: Run unit tests
         run: |
