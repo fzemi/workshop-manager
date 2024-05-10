@@ -27,16 +27,19 @@ public class PartServiceImpl implements PartService {
         this.partMapper = partMapper;
     }
 
+    @Override
     public List<PartDTO> findAll() {
         return partRepository.findAll().stream()
                 .map(partMapper::toPartDTO)
                 .toList();
     }
 
+    @Override
     public Optional<PartDTO> findPartById(Long id) {
         return partRepository.findById(id).map(partMapper::toPartDTO);
     }
 
+    @Override
     public List<PartDTO> findPartsByFilter(
             String partName,
             String serialNumber,
@@ -48,10 +51,12 @@ public class PartServiceImpl implements PartService {
                 .toList();
     }
 
+    @Override
     public PartDTO save(Part part) {
         return partMapper.toPartDTO(partRepository.save(part));
     }
 
+    @Override
     public PartDTO partialUpdate(Long id, Part part) {
         return partRepository.findById(id).map(existingPart -> {
                     Optional.ofNullable(part.getPartName()).ifPresent(existingPart::setPartName);

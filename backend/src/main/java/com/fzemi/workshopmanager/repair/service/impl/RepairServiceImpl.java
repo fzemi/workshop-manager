@@ -1,6 +1,5 @@
 package com.fzemi.workshopmanager.repair.service.impl;
 
-import com.fzemi.workshopmanager.client.entity.Client;
 import com.fzemi.workshopmanager.repair.dto.RepairDTO;
 import com.fzemi.workshopmanager.repair.dto.RepairMapper;
 import com.fzemi.workshopmanager.repair.dto.RepairWithClientsDTO;
