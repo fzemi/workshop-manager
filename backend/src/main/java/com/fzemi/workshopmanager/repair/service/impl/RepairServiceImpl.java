@@ -4,10 +4,12 @@ import com.fzemi.workshopmanager.repair.dto.RepairDTO;
 import com.fzemi.workshopmanager.repair.dto.RepairMapper;
 import com.fzemi.workshopmanager.repair.dto.RepairWithClientsDTO;
 import com.fzemi.workshopmanager.repair.entity.Repair;
+import com.fzemi.workshopmanager.repair.exception.RepairNotFoundException;
 import com.fzemi.workshopmanager.repair.repository.RepairRepository;
 import com.fzemi.workshopmanager.repair.service.RepairService;
 import com.fzemi.workshopmanager.vehicle.entity.Vehicle;
 import com.fzemi.workshopmanager.vehicle.repository.VehicleRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,13 +47,17 @@ public class RepairServiceImpl implements RepairService {
     }
 
     @Override
-    public Optional<RepairDTO> findRepairById(Long id) {
-        return repairRepository.findById(id).map(repairMapper::toRepairDTO);
+    public RepairDTO findRepairById(Long id) {
+        return repairRepository.findById(id)
+                .map(repairMapper::toRepairDTO)
+                .orElseThrow(() -> new RepairNotFoundException("Repair with id: " + id + " not found"));
     }
 
     @Override
-    public Optional<RepairDTO> findRepairByNumber(String number) {
-        return repairRepository.findByNumber(number).map(repairMapper::toRepairDTO);
+    public RepairDTO findRepairByNumber(String number) {
+        return repairRepository.findByNumber(number)
+                .map(repairMapper::toRepairDTO)
+                .orElseThrow(() -> new RepairNotFoundException("Repair with number: " + number + " not found"));
     }
 
     @Override
@@ -61,6 +67,7 @@ public class RepairServiceImpl implements RepairService {
     }
 
     @Override
+    @Transactional
     public RepairDTO partialUpdate(Long id, Repair repair) {
         return repairRepository.findById(id).map(existingRepair -> {
                     Optional.ofNullable(repair.getNumber()).ifPresent(existingRepair::setNumber);
@@ -78,11 +85,16 @@ public class RepairServiceImpl implements RepairService {
                     return repairRepository.save(existingRepair);
                 })
                 .map(repairMapper::toRepairDTO)
-                .orElse(null);
+                .orElseThrow(() -> new RepairNotFoundException("Cannot update repair with id: " + id));
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
-        repairRepository.findById(id).ifPresent(repairRepository::delete);
+        if (!repairRepository.existsById(id)) {
+            throw new RepairNotFoundException("Cannot delete repair with id: " + id);
+        }
+
+        repairRepository.deleteById(id);
     }
 }

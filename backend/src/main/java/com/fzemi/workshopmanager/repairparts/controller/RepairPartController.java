@@ -41,12 +41,6 @@ public class RepairPartController {
 
     @GetMapping("/repairs/{id}/repair-parts")
     public ResponseEntity<List<RepairPartDTO>> listRepairPartsFromRepair(@PathVariable Long id) {
-        Optional<RepairDTO> foundRepair = repairService.findRepairById(id);
-
-        if (foundRepair.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
         return ResponseEntity.ok(repairPartService.findRepairPartsByRepairId(id));
     }
 

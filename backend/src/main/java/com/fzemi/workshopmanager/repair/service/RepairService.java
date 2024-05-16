@@ -22,14 +22,16 @@ public interface RepairService {
     /**
      * @param id repair's id
      * @return repair with the given id
+     * @throws com.fzemi.workshopmanager.repair.exception.RepairNotFoundException if repair with the given id does not exist
      */
-    Optional<RepairDTO> findRepairById(Long id);
+    RepairDTO findRepairById(Long id);
 
     /**
      * @param number repair's number
      * @return repair with the given repair number
+     * @throws com.fzemi.workshopmanager.repair.exception.RepairNotFoundException if repair with the given number does not exist
      */
-    Optional<RepairDTO> findRepairByNumber(String number);
+    RepairDTO findRepairByNumber(String number);
 
     /**
      * Creates a new repair or fully updates an existing one
@@ -45,6 +47,7 @@ public interface RepairService {
      * @param id     existing repair's id
      * @param repair repair with updated fields
      * @return updated repair
+     * @throws com.fzemi.workshopmanager.repair.exception.RepairNotFoundException if repair with the given id does not exist
      */
     RepairDTO partialUpdate(Long id, Repair repair);
 
@@ -52,6 +55,7 @@ public interface RepairService {
      * Deletes existing repair
      *
      * @param id existing repair's id to be deleted
+     * @throws com.fzemi.workshopmanager.repair.exception.RepairNotFoundException if repair with the given id does not exist
      */
     void delete(Long id);
 }

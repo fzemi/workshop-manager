@@ -34,14 +34,14 @@ public class RepairController {
 
     @GetMapping("/{id}")
     public ResponseEntity<RepairDTO> getRepairById(@PathVariable Long id) {
-        Optional<RepairDTO> foundRepairDTO = repairService.findRepairById(id);
-        return foundRepairDTO.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        RepairDTO foundRepairDTO = repairService.findRepairById(id);
+        return new ResponseEntity<>(foundRepairDTO, HttpStatus.OK);
     }
 
     @GetMapping("/number/{number}")
     public ResponseEntity<RepairDTO> getRepairByNumber(@PathVariable String number) {
-        Optional<RepairDTO> foundRepairDTO = repairService.findRepairByNumber(number);
-        return foundRepairDTO.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        RepairDTO foundRepairDTO = repairService.findRepairByNumber(number);
+        return new ResponseEntity<>(foundRepairDTO, HttpStatus.OK);
     }
 
     @PostMapping
@@ -53,13 +53,8 @@ public class RepairController {
     @PutMapping("/{id}")
     public ResponseEntity<RepairDTO> fullUpdateRepair(
             @PathVariable Long id,
-            @RequestBody Repair repair) {
-        Optional<RepairDTO> foundRepairDTO = repairService.findRepairById(id);
-
-        if (foundRepairDTO.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
+            @RequestBody Repair repair
+    ) {
         repair.setId(id);
         RepairDTO updatedRepairDTO = repairService.save(repair);
         return new ResponseEntity<>(updatedRepairDTO, HttpStatus.OK);
@@ -68,25 +63,14 @@ public class RepairController {
     @PatchMapping("/{id}")
     public ResponseEntity<RepairDTO> partialUpdateRepair(
             @PathVariable Long id,
-            @RequestBody Repair repair) {
-        Optional<RepairDTO> foundRepairDTO = repairService.findRepairById(id);
-
-        if (foundRepairDTO.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
+            @RequestBody Repair repair
+    ) {
         RepairDTO updatedRepairDTO = repairService.partialUpdate(id, repair);
         return new ResponseEntity<>(updatedRepairDTO, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity deleteRepair(@PathVariable Long id) {
-        Optional<RepairDTO> foundRepairDTO = repairService.findRepairById(id);
-
-        if (foundRepairDTO.isEmpty()) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
-        }
-
         repairService.delete(id);
         return new ResponseEntity(HttpStatus.NO_CONTENT);
     }

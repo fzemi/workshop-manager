@@ -3,6 +3,7 @@ package com.fzemi.workshopmanager.repairparts.service.impl;
 import com.fzemi.workshopmanager.part.entity.Part;
 import com.fzemi.workshopmanager.part.repository.PartRepository;
 import com.fzemi.workshopmanager.repair.entity.Repair;
+import com.fzemi.workshopmanager.repair.exception.RepairNotFoundException;
 import com.fzemi.workshopmanager.repair.repository.RepairRepository;
 import com.fzemi.workshopmanager.repairparts.dto.RepairPartDTO;
 import com.fzemi.workshopmanager.repairparts.dto.RepairPartMapper;
@@ -50,6 +51,10 @@ public class RepairPartServiceImpl implements RepairPartService {
 
     @Override
     public List<RepairPartDTO> findRepairPartsByRepairId(Long id) {
+        if (!repairRepository.existsById(id)) {
+            throw new RepairNotFoundException("Repair with id: " + id + " not found");
+        }
+
         return repairPartRepository.findRepairPartsByRepairId(id).stream()
                 .map(repairPartMapper::toRepairPartDTO)
                 .toList();
