@@ -7,7 +7,9 @@ import static org.springframework.http.HttpStatus.*;
 
 @Getter
 public enum ErrorCodes {
-    NO_CODE(0, NOT_IMPLEMENTED, "No code");
+    NO_CODE(0, NOT_IMPLEMENTED, "No code"),
+    REPAIR_NOT_FOUND(404, NOT_FOUND, "Repair not found"),
+    ;
 
     // TODO: Add codes for auth
 

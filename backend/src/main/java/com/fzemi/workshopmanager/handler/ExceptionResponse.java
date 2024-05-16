@@ -13,10 +13,14 @@ import java.util.Set;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ExceptionResponse {
-    
+
     private Integer errorCode;
     private String errorDescription;
     private String error;
+
+    /**
+     * Validation errors for request body
+     */
     private Set<String> validationErrors;
     private Map<String, String> errors;
 }
