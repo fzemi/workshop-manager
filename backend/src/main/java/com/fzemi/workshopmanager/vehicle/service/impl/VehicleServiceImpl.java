@@ -5,10 +5,12 @@ import com.fzemi.workshopmanager.client.repository.ClientRepository;
 import com.fzemi.workshopmanager.vehicle.dto.VehicleDTO;
 import com.fzemi.workshopmanager.vehicle.dto.VehicleMapper;
 import com.fzemi.workshopmanager.vehicle.entity.Vehicle;
+import com.fzemi.workshopmanager.vehicle.exception.VehicleNotFoundException;
 import com.fzemi.workshopmanager.vehicle.repository.VehicleRepository;
 import com.fzemi.workshopmanager.vehicle.service.VehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,9 +22,11 @@ public class VehicleServiceImpl implements VehicleService {
     private final VehicleMapper vehicleMapper;
 
     @Autowired
-    public VehicleServiceImpl(VehicleRepository vehicleRepository,
-                              ClientRepository clientRepository,
-                              VehicleMapper vehicleMapper) {
+    public VehicleServiceImpl(
+            VehicleRepository vehicleRepository,
+            ClientRepository clientRepository,
+            VehicleMapper vehicleMapper
+    ) {
         this.vehicleRepository = vehicleRepository;
         this.clientRepository = clientRepository;
         this.vehicleMapper = vehicleMapper;
@@ -36,18 +40,24 @@ public class VehicleServiceImpl implements VehicleService {
     }
 
     @Override
-    public Optional<VehicleDTO> findVehicleById(Long id) {
-        return vehicleRepository.findById(id).map(vehicleMapper::toVehicleDTO);
+    public VehicleDTO findVehicleById(Long id) {
+        return vehicleRepository.findById(id)
+                .map(vehicleMapper::toVehicleDTO)
+                .orElseThrow(() -> new VehicleNotFoundException("Vehicle with id: " + id + " not found"));
     }
 
     @Override
-    public Optional<VehicleDTO> findVehicleByVin(String vin) {
-        return vehicleRepository.findByVin(vin).map(vehicleMapper::toVehicleDTO);
+    public VehicleDTO findVehicleByVin(String vin) {
+        return vehicleRepository.findByVin(vin)
+                .map(vehicleMapper::toVehicleDTO)
+                .orElseThrow(() -> new VehicleNotFoundException("Vehicle with vin: " + vin + " not found"));
     }
 
     @Override
-    public Optional<VehicleDTO> findVehicleByLicencePlate(String licencePlate) {
-        return vehicleRepository.findByLicencePlate(licencePlate).map(vehicleMapper::toVehicleDTO);
+    public VehicleDTO findVehicleByLicencePlate(String licencePlate) {
+        return vehicleRepository.findByLicencePlate(licencePlate)
+                .map(vehicleMapper::toVehicleDTO)
+                .orElseThrow(() -> new VehicleNotFoundException("Vehicle with licence place: " + licencePlate + " not found"));
     }
 
     @Override
@@ -64,6 +74,7 @@ public class VehicleServiceImpl implements VehicleService {
     }
 
     @Override
+    @Transactional
     public VehicleDTO partialUpdate(Long id, Vehicle vehicle) {
         return vehicleRepository.findById(id).map(existingVehicle -> {
                     Optional.ofNullable(vehicle.getVin()).ifPresent(existingVehicle::setVin);
@@ -96,11 +107,16 @@ public class VehicleServiceImpl implements VehicleService {
                     return vehicleRepository.save(existingVehicle);
                 })
                 .map(vehicleMapper::toVehicleDTO)
-                .orElse(null);
+                .orElseThrow(() -> new VehicleNotFoundException("Cannot update vehicle with id: " + id));
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
-        vehicleRepository.findById(id).ifPresent(vehicleRepository::delete);
+        if (!vehicleRepository.existsById(id)) {
+            throw new VehicleNotFoundException("Vehicle with id: " + id + " not found");
+        }
+
+        vehicleRepository.deleteById(id);
     }
 }

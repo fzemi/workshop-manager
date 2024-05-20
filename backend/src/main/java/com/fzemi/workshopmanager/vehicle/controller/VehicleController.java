@@ -9,13 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/vehicles")
 public class VehicleController {
     private final VehicleService vehicleService;
-    
+
     @Autowired
     public VehicleController(VehicleService vehicleService) {
         this.vehicleService = vehicleService;
@@ -28,20 +27,20 @@ public class VehicleController {
 
     @GetMapping("/{id}")
     public ResponseEntity<VehicleDTO> getVehicleById(@PathVariable Long id) {
-        Optional<VehicleDTO> foundVehicle = vehicleService.findVehicleById(id);
-        return foundVehicle.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        VehicleDTO foundVehicle = vehicleService.findVehicleById(id);
+        return ResponseEntity.ok(foundVehicle);
     }
 
     @GetMapping("/vin/{vin}")
     public ResponseEntity<VehicleDTO> getVehicleByVin(@PathVariable String vin) {
-        Optional<VehicleDTO> foundVehicle = vehicleService.findVehicleByVin(vin);
-        return foundVehicle.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        VehicleDTO foundVehicle = vehicleService.findVehicleByVin(vin);
+        return ResponseEntity.ok(foundVehicle);
     }
 
     @GetMapping("/plate/{plate}")
     public ResponseEntity<VehicleDTO> getVehicleByLicencePlate(@PathVariable String plate) {
-        Optional<VehicleDTO> foundVehicle = vehicleService.findVehicleByLicencePlate(plate);
-        return foundVehicle.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        VehicleDTO foundVehicle = vehicleService.findVehicleByLicencePlate(plate);
+        return ResponseEntity.ok(foundVehicle);
     }
 
     @PostMapping
@@ -53,14 +52,8 @@ public class VehicleController {
     @PutMapping("/{id}")
     public ResponseEntity<VehicleDTO> fullUpdateVehicle(
             @PathVariable Long id,
-            @RequestBody Vehicle vehicle) {
-
-        Optional<VehicleDTO> foundVehicleDTO = vehicleService.findVehicleById(id);
-
-        if (foundVehicleDTO.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
+            @RequestBody Vehicle vehicle
+    ) {
         vehicle.setId(id); // Without adding id Hibernate would create new instance instead of updating one
         VehicleDTO updatedVehicleDTO = vehicleService.save(vehicle);
         return new ResponseEntity<>(updatedVehicleDTO, HttpStatus.OK);
@@ -69,14 +62,8 @@ public class VehicleController {
     @PatchMapping("/{id}")
     public ResponseEntity<VehicleDTO> partialUpdateVehicle(
             @PathVariable Long id,
-            @RequestBody Vehicle vehicle) {
-
-        Optional<VehicleDTO> foundVehicle = vehicleService.findVehicleById(id);
-
-        if (foundVehicle.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
+            @RequestBody Vehicle vehicle
+    ) {
         VehicleDTO updatedVehicleDTO = vehicleService.partialUpdate(id, vehicle);
         return new ResponseEntity<>(updatedVehicleDTO, HttpStatus.OK);
     }

@@ -4,7 +4,6 @@ import com.fzemi.workshopmanager.vehicle.dto.VehicleDTO;
 import com.fzemi.workshopmanager.vehicle.entity.Vehicle;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface VehicleService {
 
@@ -16,20 +15,23 @@ public interface VehicleService {
     /**
      * @param id vehicle's id
      * @return vehicleDTO with the given id
+     * @throws com.fzemi.workshopmanager.vehicle.exception.VehicleNotFoundException if vehicle with given id does not exist
      */
-    Optional<VehicleDTO> findVehicleById(Long id);
+    VehicleDTO findVehicleById(Long id);
 
     /**
      * @param vin vehicle's VIN
      * @return vehicleDTO with the given VIN
+     * @throws com.fzemi.workshopmanager.vehicle.exception.VehicleNotFoundException if vehicle with given id does not exist
      */
-    Optional<VehicleDTO> findVehicleByVin(String vin);
+    VehicleDTO findVehicleByVin(String vin);
 
     /**
      * @param licencePlate vehicle's licence plate
      * @return vehicleDTO with the given licence plate
+     * @throws com.fzemi.workshopmanager.vehicle.exception.VehicleNotFoundException if vehicle with given id does not exist
      */
-    Optional<VehicleDTO> findVehicleByLicencePlate(String licencePlate);
+    VehicleDTO findVehicleByLicencePlate(String licencePlate);
 
     /**
      * Creates a new vehicle or fully updates an existing one
@@ -45,6 +47,7 @@ public interface VehicleService {
      * @param id      existing vehicle's id
      * @param vehicle vehicle with updated fields
      * @return updated vehicleDTO
+     * @throws com.fzemi.workshopmanager.vehicle.exception.VehicleNotFoundException if vehicle with given id does not exist
      */
     VehicleDTO partialUpdate(Long id, Vehicle vehicle);
 
@@ -52,6 +55,7 @@ public interface VehicleService {
      * Deletes existing vehicle
      *
      * @param id existing vehicle's id to be deleted
+     * @throws com.fzemi.workshopmanager.vehicle.exception.VehicleNotFoundException if vehicle with given id does not exist
      */
     void delete(Long id);
 }
