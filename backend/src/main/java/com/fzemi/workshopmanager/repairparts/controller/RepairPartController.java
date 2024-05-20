@@ -1,6 +1,5 @@
 package com.fzemi.workshopmanager.repairparts.controller;
 
-import com.fzemi.workshopmanager.repair.dto.RepairDTO;
 import com.fzemi.workshopmanager.repair.service.RepairService;
 import com.fzemi.workshopmanager.repairparts.dto.RepairPartDTO;
 import com.fzemi.workshopmanager.repairparts.entity.RepairPart;
@@ -11,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -35,8 +33,8 @@ public class RepairPartController {
 
     @GetMapping("/repair-parts/{id}")
     public ResponseEntity<RepairPartDTO> getRepairPartById(@PathVariable Long id) {
-        Optional<RepairPartDTO> foundRepairPart = repairPartService.findRepairPartById(id);
-        return foundRepairPart.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        RepairPartDTO foundRepairPart = repairPartService.findRepairPartById(id);
+        return ResponseEntity.ok(foundRepairPart);
     }
 
     @GetMapping("/repairs/{id}/repair-parts")
@@ -55,24 +53,12 @@ public class RepairPartController {
             @PathVariable Long id,
             @RequestBody RepairPart repairPart
     ) {
-        Optional<RepairPartDTO> foundRepairPartDTO = repairPartService.findRepairPartById(id);
-
-        if (foundRepairPartDTO.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
         RepairPartDTO updatedRepairPartDTO = repairPartService.partialUpdate(id, repairPart);
         return new ResponseEntity<>(updatedRepairPartDTO, HttpStatus.OK);
     }
 
     @DeleteMapping("/repair-parts/{id}")
     public ResponseEntity deleteRepairPart(@PathVariable Long id) {
-        Optional<RepairPartDTO> foundRepairPartDTO = repairPartService.findRepairPartById(id);
-
-        if (foundRepairPartDTO.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
         repairPartService.delete(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

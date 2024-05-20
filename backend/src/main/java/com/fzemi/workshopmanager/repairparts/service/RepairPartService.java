@@ -16,8 +16,9 @@ public interface RepairPartService {
     /**
      * @param id repair part's id
      * @return repair part with the given id
+     * @throws com.fzemi.workshopmanager.repairparts.exception.RepairPartNotFoundException if repair part with given id does not exist
      */
-    Optional<RepairPartDTO> findRepairPartById(Long id);
+    RepairPartDTO findRepairPartById(Long id);
 
     /**
      * @param id repair id
@@ -39,6 +40,7 @@ public interface RepairPartService {
      * @param id         existing repair part's id
      * @param repairPart repair part with updated fields
      * @return updated repair part
+     * @throws com.fzemi.workshopmanager.repairparts.exception.RepairPartNotFoundException if repair part with given id does not exist
      */
     RepairPartDTO partialUpdate(Long id, RepairPart repairPart);
 
@@ -46,6 +48,7 @@ public interface RepairPartService {
      * Deletes existing repair part
      *
      * @param id exisiting repair part's id to be deleted
+     * @throws com.fzemi.workshopmanager.repairparts.exception.RepairPartNotFoundException if repair part with given id does not exist
      */
     void delete(Long id);
 }

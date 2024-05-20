@@ -8,10 +8,12 @@ import com.fzemi.workshopmanager.repair.repository.RepairRepository;
 import com.fzemi.workshopmanager.repairparts.dto.RepairPartDTO;
 import com.fzemi.workshopmanager.repairparts.dto.RepairPartMapper;
 import com.fzemi.workshopmanager.repairparts.entity.RepairPart;
+import com.fzemi.workshopmanager.repairparts.exception.RepairPartNotFoundException;
 import com.fzemi.workshopmanager.repairparts.repository.RepairPartRepository;
 import com.fzemi.workshopmanager.repairparts.service.RepairPartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +26,7 @@ public class RepairPartServiceImpl implements RepairPartService {
     private final RepairRepository repairRepository;
     private final PartRepository partRepository;
 
+    // TODO: Change repositories to services for different entities than each service is responsible for
     @Autowired
     public RepairPartServiceImpl(
             RepairPartMapper repairPartMapper,
@@ -45,8 +48,10 @@ public class RepairPartServiceImpl implements RepairPartService {
     }
 
     @Override
-    public Optional<RepairPartDTO> findRepairPartById(Long id) {
-        return repairPartRepository.findById(id).map(repairPartMapper::toRepairPartDTO);
+    public RepairPartDTO findRepairPartById(Long id) {
+        return repairPartRepository.findById(id)
+                .map(repairPartMapper::toRepairPartDTO)
+                .orElseThrow(() -> new RepairPartNotFoundException("Repair part with id: " + id + " not found"));
     }
 
     @Override
@@ -66,6 +71,7 @@ public class RepairPartServiceImpl implements RepairPartService {
     }
 
     @Override
+    @Transactional
     public RepairPartDTO partialUpdate(Long id, RepairPart repairPart) {
         return repairPartRepository.findById(id).map(existingRepairPart -> {
                     Optional.ofNullable(repairPart.getWorkType()).ifPresent(existingRepairPart::setWorkType);
@@ -88,11 +94,16 @@ public class RepairPartServiceImpl implements RepairPartService {
                     return repairPartRepository.save(existingRepairPart);
                 })
                 .map(repairPartMapper::toRepairPartDTO)
-                .orElse(null);
+                .orElseThrow(() -> new RepairPartNotFoundException("Cannot update repair part with id: " + id));
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
-        repairPartRepository.findById(id).ifPresent(repairPartRepository::delete);
+        if (!repairPartRepository.existsById(id)) {
+            throw new RepairPartNotFoundException("Cannot delete repair part with id: " + id);
+        }
+
+        repairPartRepository.deleteById(id);
     }
 }
