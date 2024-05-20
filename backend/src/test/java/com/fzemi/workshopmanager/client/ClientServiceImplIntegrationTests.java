@@ -63,7 +63,7 @@ public class ClientServiceImplIntegrationTests {
         Mockito.when(clientRepository.save(client)).thenReturn(client);
         Mockito.when(clientMapper.toClientDTO(client)).thenReturn(underTestClientDTO);
 
-        ClientDTO result = clientService.save(client);
+        ClientDTO result = clientService.fullUpdate(client);
 
         assertThat(result).isNotNull();
         assertThat(result).isEqualTo(underTestClientDTO);

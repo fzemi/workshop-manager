@@ -55,7 +55,7 @@ public class VehicleController {
             @RequestBody Vehicle vehicle
     ) {
         vehicle.setId(id); // Without adding id Hibernate would create new instance instead of updating one
-        VehicleDTO updatedVehicleDTO = vehicleService.save(vehicle);
+        VehicleDTO updatedVehicleDTO = vehicleService.fullUpdate(vehicle);
         return new ResponseEntity<>(updatedVehicleDTO, HttpStatus.OK);
     }
 

@@ -3,12 +3,14 @@ package com.fzemi.workshopmanager.client.service.impl;
 import com.fzemi.workshopmanager.client.dto.ClientDTO;
 import com.fzemi.workshopmanager.client.dto.ClientMapper;
 import com.fzemi.workshopmanager.client.entity.Client;
+import com.fzemi.workshopmanager.client.exception.ClientNotFoundException;
 import com.fzemi.workshopmanager.client.repository.ClientRepository;
 import com.fzemi.workshopmanager.client.service.ClientService;
 import com.fzemi.workshopmanager.vehicle.entity.Vehicle;
 import com.fzemi.workshopmanager.vehicle.repository.VehicleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,9 +22,11 @@ public class ClientServiceImpl implements ClientService {
     private final ClientMapper clientMapper;
 
     @Autowired
-    public ClientServiceImpl(ClientRepository clientRepository,
-                             VehicleRepository vehicleRepository,
-                             ClientMapper clientMapper) {
+    public ClientServiceImpl(
+            ClientRepository clientRepository,
+            VehicleRepository vehicleRepository,
+            ClientMapper clientMapper
+    ) {
         this.clientRepository = clientRepository;
         this.vehicleRepository = vehicleRepository;
         this.clientMapper = clientMapper;
@@ -36,8 +40,10 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public Optional<ClientDTO> findClientById(Long id) {
-        return clientRepository.findById(id).map(clientMapper::toClientDTO);
+    public ClientDTO findClientById(Long id) {
+        return clientRepository.findById(id)
+                .map(clientMapper::toClientDTO)
+                .orElseThrow(() -> new ClientNotFoundException("Client with id: " + id + " not found"));
     }
 
     @Override
@@ -49,18 +55,28 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ClientDTO save(Client client) {
-        // Means that we are updating the client not creating a new one
-        if (client.getId() != null) {
-            Optional<Client> existingClient = clientRepository.findById(client.getId());
-            existingClient.ifPresent(value -> client.setVehicles(value.getVehicles()));
-        }
-
         Client savedClient = clientRepository.save(client);
-
         return clientMapper.toClientDTO(savedClient);
     }
 
     @Override
+    @Transactional
+    public ClientDTO fullUpdate(Client client) {
+        Optional<Client> existingClient = clientRepository.findById(client.getId());
+
+        if (existingClient.isEmpty()) {
+            throw new ClientNotFoundException("Cannot update client with id: " + client.getId());
+        }
+
+        client.setVehicles(existingClient.get().getVehicles());
+
+        Client updatedClient = clientRepository.save(client);
+        return clientMapper.toClientDTO(updatedClient);
+    }
+
+
+    @Override
+    @Transactional
     public ClientDTO partialUpdate(Long id, Client client) {
         return clientRepository.findById(id).map(existingClient -> {
                     Optional.ofNullable(client.getFirstname()).ifPresent(existingClient::setFirstname);
@@ -95,6 +111,6 @@ public class ClientServiceImpl implements ClientService {
                     return clientRepository.save(existingClient);
                 })
                 .map(clientMapper::toClientDTO)
-                .orElse(null);
+                .orElseThrow(() -> new ClientNotFoundException("Cannot update client with id: " + id));
     }
 }

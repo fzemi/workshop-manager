@@ -34,12 +34,21 @@ public interface VehicleService {
     VehicleDTO findVehicleByLicencePlate(String licencePlate);
 
     /**
-     * Creates a new vehicle or fully updates an existing one
+     * Creates a new vehicle
      *
      * @param vehicle new vehicle
      * @return created vehicleDTO
      */
     VehicleDTO save(Vehicle vehicle);
+
+    /**
+     * Fully updates an existing vehicle
+     *
+     * @param vehicle vehicle with updated fields
+     * @return updated vehicleDTO
+     * @throws com.fzemi.workshopmanager.vehicle.exception.VehicleNotFoundException if vehicle with given id does not exist
+     */
+    VehicleDTO fullUpdate(Vehicle vehicle);
 
     /**
      * Partially updates an existing vehicle

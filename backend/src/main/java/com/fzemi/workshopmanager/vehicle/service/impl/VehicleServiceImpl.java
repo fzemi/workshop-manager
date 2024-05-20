@@ -62,15 +62,22 @@ public class VehicleServiceImpl implements VehicleService {
 
     @Override
     public VehicleDTO save(Vehicle vehicle) {
-        // Means that we are updating the vehicle not creating a new one
-        if (vehicle.getId() != null) {
-            Optional<Vehicle> existingVehicle = vehicleRepository.findById(vehicle.getId());
-            existingVehicle.ifPresent(value -> vehicle.setClients(value.getClients()));
+        Vehicle savedVehicle = vehicleRepository.save(vehicle);
+        return vehicleMapper.toVehicleDTO(savedVehicle);
+    }
+
+    @Override
+    @Transactional
+    public VehicleDTO fullUpdate(Vehicle vehicle) {
+        Optional<Vehicle> existingVehicle = vehicleRepository.findById(vehicle.getId());
+
+        if (existingVehicle.isEmpty()) {
+            throw new VehicleNotFoundException("Cannot update vehicle with id: " + vehicle.getId());
         }
 
-        Vehicle savedVehicle = vehicleRepository.save(vehicle);
-
-        return vehicleMapper.toVehicleDTO(savedVehicle);
+        vehicle.setClients(existingVehicle.get().getClients());
+        Vehicle updatedVehicle = vehicleRepository.save(vehicle);
+        return vehicleMapper.toVehicleDTO(updatedVehicle);
     }
 
     @Override

@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/clients")
@@ -28,8 +27,8 @@ public class ClientController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ClientDTO> findClientById(@PathVariable Long id) {
-        Optional<ClientDTO> foundClientDTO = clientService.findClientById(id);
-        return foundClientDTO.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        ClientDTO foundClientDTO = clientService.findClientById(id);
+        return ResponseEntity.ok(foundClientDTO);
     }
 
     @GetMapping("/surname/{surname}")
@@ -46,28 +45,18 @@ public class ClientController {
     @PutMapping("/{id}")
     public ResponseEntity<ClientDTO> fullUpdateClient(
             @PathVariable Long id,
-            @RequestBody Client client) {
-        Optional<ClientDTO> foundClientDTO = clientService.findClientById(id);
-
-        if (foundClientDTO.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
+            @RequestBody Client client
+    ) {
         client.setId(id);
-        ClientDTO updatedClientDTO = clientService.save(client);
+        ClientDTO updatedClientDTO = clientService.fullUpdate(client);
         return new ResponseEntity<>(updatedClientDTO, HttpStatus.OK);
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<ClientDTO> partialUpdateClient(
             @PathVariable Long id,
-            @RequestBody Client client) {
-        Optional<ClientDTO> foundClientDTO = clientService.findClientById(id);
-
-        if (foundClientDTO.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
+            @RequestBody Client client
+    ) {
         ClientDTO updatedClientDTO = clientService.partialUpdate(id, client);
         return new ResponseEntity<>(updatedClientDTO, HttpStatus.OK);
     }
