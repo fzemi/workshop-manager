@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/parts")
@@ -28,8 +27,8 @@ public class PartController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PartDTO> getPartById(@PathVariable Long id) {
-        Optional<PartDTO> foundPartDTO = partService.findPartById(id);
-        return foundPartDTO.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        PartDTO foundPartDTO = partService.findPartById(id);
+        return ResponseEntity.ok(foundPartDTO);
     }
 
     @GetMapping("/filter")
@@ -52,12 +51,6 @@ public class PartController {
             @PathVariable Long id,
             @RequestBody Part part
     ) {
-        Optional<PartDTO> foundPartDTO = partService.findPartById(id);
-
-        if (foundPartDTO.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
         PartDTO updatedPartDTO = partService.partialUpdate(id, part);
         return new ResponseEntity<>(updatedPartDTO, HttpStatus.OK);
     }

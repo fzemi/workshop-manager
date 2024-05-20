@@ -4,7 +4,6 @@ import com.fzemi.workshopmanager.part.dto.PartDTO;
 import com.fzemi.workshopmanager.part.entity.Part;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface PartService {
 
@@ -16,8 +15,9 @@ public interface PartService {
     /**
      * @param id part's id
      * @return part with the given id
+     * @throws com.fzemi.workshopmanager.part.exception.PartNotFoundException if part with given id does not exist
      */
-    Optional<PartDTO> findPartById(Long id);
+    PartDTO findPartById(Long id);
 
     /**
      * @param partName     part's name
@@ -44,6 +44,7 @@ public interface PartService {
      * @param id   existing part's id
      * @param part part with updated fields
      * @return updated part
+     * @throws com.fzemi.workshopmanager.part.exception.PartNotFoundException if part with given id does not exist
      */
     PartDTO partialUpdate(Long id, Part part);
 }

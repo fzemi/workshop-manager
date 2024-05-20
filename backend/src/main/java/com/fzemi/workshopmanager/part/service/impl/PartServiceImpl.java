@@ -4,11 +4,13 @@ import com.fzemi.workshopmanager.part.dto.PartDTO;
 import com.fzemi.workshopmanager.part.dto.PartMapper;
 import com.fzemi.workshopmanager.part.entity.Part;
 import com.fzemi.workshopmanager.part.entity.PartSpecification;
+import com.fzemi.workshopmanager.part.exception.PartNotFoundException;
 import com.fzemi.workshopmanager.part.repository.PartRepository;
 import com.fzemi.workshopmanager.part.service.PartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,8 +37,10 @@ public class PartServiceImpl implements PartService {
     }
 
     @Override
-    public Optional<PartDTO> findPartById(Long id) {
-        return partRepository.findById(id).map(partMapper::toPartDTO);
+    public PartDTO findPartById(Long id) {
+        return partRepository.findById(id)
+                .map(partMapper::toPartDTO)
+                .orElseThrow(() -> new PartNotFoundException("Part with id: " + id + " not found"));
     }
 
     @Override
@@ -57,6 +61,7 @@ public class PartServiceImpl implements PartService {
     }
 
     @Override
+    @Transactional
     public PartDTO partialUpdate(Long id, Part part) {
         return partRepository.findById(id).map(existingPart -> {
                     Optional.ofNullable(part.getPartName()).ifPresent(existingPart::setPartName);
@@ -66,6 +71,6 @@ public class PartServiceImpl implements PartService {
                     return partRepository.save(existingPart);
                 })
                 .map(partMapper::toPartDTO)
-                .orElse(null);
+                .orElseThrow(() -> new PartNotFoundException("Cannot update part with id: " + id));
     }
 }

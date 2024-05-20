@@ -23,6 +23,7 @@ public interface RepairPartService {
     /**
      * @param id repair id
      * @return all repair parts from given repair
+     * @throws com.fzemi.workshopmanager.repair.exception.RepairNotFoundException if repair with given id does not exist
      */
     List<RepairPartDTO> findRepairPartsByRepairId(Long id);
 
