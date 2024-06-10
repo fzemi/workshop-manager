@@ -3,8 +3,7 @@ package com.fzemi.workshopmanager.handler;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.NOT_IMPLEMENTED;
+import static org.springframework.http.HttpStatus.*;
 
 @Getter
 public enum ErrorCodes {
@@ -18,6 +17,11 @@ public enum ErrorCodes {
     // 14xx - PARTS ERRORS
     PART_NOT_FOUND(1400, NOT_FOUND, "Part not found"),
     REPAIR_PART_NOT_FOUND(1401, NOT_FOUND, "Repair part not found"),
+    // 15xx - FILES ERRORS
+    FILE_NOT_UPLOADED(1500, INTERNAL_SERVER_ERROR, "File not uploaded"),
+    FILE_NOT_FOUND(1501, NOT_FOUND, "File not found"),
+    FILE_ALREADY_EXISTS(1502, CONFLICT, "File already exists"),
+    NO_FILE_ACCESS(1503, FORBIDDEN, "No access to file"),
     // OTHER
     NO_CODE(0, NOT_IMPLEMENTED, "No code");
 

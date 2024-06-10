@@ -3,7 +3,6 @@ package com.fzemi.workshopmanager.repair.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fzemi.workshopmanager.client.entity.Client;
 import com.fzemi.workshopmanager.repair.config.RepairTypeFormat;
-import com.fzemi.workshopmanager.repairparts.entity.RepairPart;
 import com.fzemi.workshopmanager.vehicle.entity.Vehicle;
 import jakarta.persistence.*;
 import lombok.*;

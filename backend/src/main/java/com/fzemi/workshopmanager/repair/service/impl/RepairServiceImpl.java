@@ -1,5 +1,6 @@
 package com.fzemi.workshopmanager.repair.service.impl;
 
+import com.fzemi.workshopmanager.file.service.FileStorageService;
 import com.fzemi.workshopmanager.repair.dto.RepairDTO;
 import com.fzemi.workshopmanager.repair.dto.RepairMapper;
 import com.fzemi.workshopmanager.repair.dto.RepairWithClientsDTO;
@@ -21,15 +22,18 @@ public class RepairServiceImpl implements RepairService {
     private final RepairRepository repairRepository;
     private final VehicleRepository vehicleRepository;
     private final RepairMapper repairMapper;
+    private final FileStorageService fileStorageService;
 
     @Autowired
     public RepairServiceImpl(
             RepairRepository repairRepository,
             VehicleRepository vehicleRepository,
-            RepairMapper repairMapper) {
+            RepairMapper repairMapper,
+            FileStorageService fileStorageService) {
         this.repairRepository = repairRepository;
         this.vehicleRepository = vehicleRepository;
         this.repairMapper = repairMapper;
+        this.fileStorageService = fileStorageService;
     }
 
     @Override
@@ -95,6 +99,7 @@ public class RepairServiceImpl implements RepairService {
             throw new RepairNotFoundException("Cannot delete repair with id: " + id);
         }
 
+        fileStorageService.deleteAllByRepairId(id);
         repairRepository.deleteById(id);
     }
 }
