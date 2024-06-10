@@ -5,6 +5,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 
 @SpringBootApplication
 public class BackendApplication {
@@ -14,6 +15,7 @@ public class BackendApplication {
     }
 
     @Bean
+    @Profile("dev")
     CommandLineRunner init(FileStorageService fileStorageService) {
         return args -> {
             fileStorageService.deleteAll();
