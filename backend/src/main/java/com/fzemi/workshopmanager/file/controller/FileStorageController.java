@@ -1,5 +1,7 @@
 package com.fzemi.workshopmanager.file.controller;
 
+import com.fzemi.workshopmanager.file.dto.FileDTO;
+import com.fzemi.workshopmanager.file.dto.FileMapper;
 import com.fzemi.workshopmanager.file.service.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -7,14 +9,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/repairs/{repairId}/files")
 public class FileStorageController {
     private final FileStorageService fileStorageService;
+    private final FileMapper fileMapper;
 
     @Autowired
-    public FileStorageController(FileStorageService fileStorageService) {
+    public FileStorageController(
+            FileStorageService fileStorageService,
+            FileMapper fileMapper
+    ) {
         this.fileStorageService = fileStorageService;
+        this.fileMapper = fileMapper;
     }
 
     @GetMapping("/{fileId}")
@@ -27,8 +36,11 @@ public class FileStorageController {
     }
 
     @GetMapping
-    public ResponseEntity getAllFiles(@PathVariable Long repairId) {
-        return ResponseEntity.ok(fileStorageService.loadAllRepairFiles(repairId));
+    public ResponseEntity<List<FileDTO>> getAllRepairFiles(@PathVariable Long repairId) {
+        List<FileDTO> filesDTOs = fileStorageService.loadAllRepairFiles(repairId).stream()
+                .map(fileMapper::toFileDTO)
+                .toList();
+        return ResponseEntity.ok(filesDTOs);
     }
 
     @PostMapping
