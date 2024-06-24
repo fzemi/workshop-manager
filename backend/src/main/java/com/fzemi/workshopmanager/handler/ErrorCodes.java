@@ -8,6 +8,8 @@ import static org.springframework.http.HttpStatus.*;
 @Getter
 public enum ErrorCodes {
     // 10xx - SECURITY
+    BAD_CREDENTIALS(1000, UNAUTHORIZED, "Bad credentials"),
+    ACCOUNT_LOCKED(1001, UNAUTHORIZED, "Account locked"),
     // 11xx - REPAIRS ERRORS
     REPAIR_NOT_FOUND(1100, NOT_FOUND, "Repair not found"),
     // 12xx - VEHICLES ERRORS
@@ -24,8 +26,6 @@ public enum ErrorCodes {
     NO_FILE_ACCESS(1503, FORBIDDEN, "No access to file"),
     // OTHER
     NO_CODE(0, NOT_IMPLEMENTED, "No code");
-
-    // TODO: Add codes for auth
 
     private final int code;
     private final String description;

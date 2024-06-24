@@ -1,35 +1,34 @@
-package com.fzemi.workshopmanager.file.entity;
+package com.fzemi.workshopmanager.user.roles;
 
-import com.fzemi.workshopmanager.file.config.FileTags;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Converter
-public class FileTagsConverter implements AttributeConverter<List<FileTags>, String> {
+public class UserRolesConverter implements AttributeConverter<Set<UserRoles>, String> {
 
     private final String SEPARATOR = ",";
 
     @Override
-    public String convertToDatabaseColumn(List<FileTags> attribute) {
+    public String convertToDatabaseColumn(Set<UserRoles> attribute) {
         if (attribute == null || attribute.isEmpty()) {
             return "";
         }
         return attribute.stream()
-                .map(FileTags::name)
+                .map(UserRoles::name)
                 .collect(Collectors.joining(SEPARATOR));
     }
 
     @Override
-    public List<FileTags> convertToEntityAttribute(String dbData) {
+    public Set<UserRoles> convertToEntityAttribute(String dbData) {
         if (dbData == null || dbData.trim().isEmpty()) {
-            return List.of();
+            return Set.of();
         }
         return Arrays.stream(dbData.split(SEPARATOR))
-                .map(FileTags::valueOf)
-                .collect(Collectors.toList());
+                .map(UserRoles::valueOf)
+                .collect(Collectors.toSet());
     }
 }

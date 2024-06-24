@@ -2,6 +2,8 @@ package com.fzemi.workshopmanager.handler;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -11,13 +13,12 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static com.fzemi.workshopmanager.handler.ErrorCodes.ACCOUNT_LOCKED;
+import static com.fzemi.workshopmanager.handler.ErrorCodes.BAD_CREDENTIALS;
+import static org.springframework.http.HttpStatus.*;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    // TODO: Add auth exceptions
-
 
     /**
      * Handles request validation errors
@@ -90,6 +91,40 @@ public class GlobalExceptionHandler {
                         .errorCode(errorCode.getCode())
                         .errorDescription(errorCode.getDescription())
                         .error(exc.getMessage())
+                        .build()
+        );
+    }
+
+    /**
+     * Handles locked account exception
+     *
+     * @param exc locked account exception
+     * @return response with error message
+     */
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<ExceptionResponse> handleException(LockedException exc) {
+        return ResponseEntity.status(UNAUTHORIZED).body(
+                ExceptionResponse.builder()
+                        .errorCode(ACCOUNT_LOCKED.getCode())
+                        .errorDescription(ACCOUNT_LOCKED.getDescription())
+                        .error(exc.getMessage())
+                        .build()
+        );
+    }
+
+    /**
+     * Handles bad credentials exception (wrong username or password)
+     *
+     * @param exc bad credentials exception
+     * @return response with error message
+     */
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ExceptionResponse> handleException(BadCredentialsException exc) {
+        return ResponseEntity.status(UNAUTHORIZED).body(
+                ExceptionResponse.builder()
+                        .errorCode(BAD_CREDENTIALS.getCode())
+                        .errorDescription(BAD_CREDENTIALS.getDescription())
+                        .error(BAD_CREDENTIALS.getDescription())
                         .build()
         );
     }
