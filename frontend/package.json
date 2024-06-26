@@ -13,9 +13,13 @@
     "@fortawesome/fontawesome-free": "^6.5.1",
     "dotenv": "^16.4.5",
     "primeflex": "^3.3.1",
-    "primevue": "^3.49.1",
-    "vue": "^3.4.15",
-    "vue-router": "^4.2.5"
+    "primeicons": "^7.0.0",
+    "primevue": "^3.52.0",
+    "vue": "^3.4.30",
+    "vue-router": "^4.4.0",
+    "pinia": "^2.1.7",
+    "vee-validate": "^4.13.1",
+    "yup": "^1.4.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.3",
