@@ -6,15 +6,15 @@ const API_URL = import.meta.env.VITE_API_URL;
 const API_PORT = import.meta.env.VITE_API_PORT;
 const baseUrl = `${API_URL}:${API_PORT}/api/v1/auth`;
 
-export const useAuthStore = defineStore({
-    id: "auth",
+export const useAuthStore = defineStore("auth", {
     state: () => ({
         user: JSON.parse(localStorage.getItem("user")),
         returnUrl: null
     }),
     actions: {
         async login(username, password) {
-            const user = await httpService.post(`${baseUrl}/login`, { username, password });
+            const response = await httpService.post(`${baseUrl}/login`, { username, password });
+            const user = response.data;
 
             this.user = user;
 

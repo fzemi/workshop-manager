@@ -38,6 +38,12 @@ public class RepairController {
         return new ResponseEntity<>(foundRepairDTO, HttpStatus.OK);
     }
 
+    @GetMapping("/{id}/withClients")
+    public ResponseEntity<RepairWithClientsDTO> getRepairByIdWithClients(@PathVariable Long id) {
+        RepairWithClientsDTO foundRepairDTO = repairService.findRepairByIdWithClients(id);
+        return new ResponseEntity<>(foundRepairDTO, HttpStatus.OK);
+    }
+
     @GetMapping("/number/{number}")
     public ResponseEntity<RepairDTO> getRepairByNumber(@PathVariable String number) {
         RepairDTO foundRepairDTO = repairService.findRepairByNumber(number);

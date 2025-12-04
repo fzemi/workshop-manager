@@ -44,6 +44,7 @@ public class RepairServiceImpl implements RepairService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<RepairWithClientsDTO> findAllWithClients() {
         return repairRepository.findAll().stream()
                 .map(repairMapper::toRepairWithClientsDTO)
@@ -58,6 +59,14 @@ public class RepairServiceImpl implements RepairService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public RepairWithClientsDTO findRepairByIdWithClients(Long id) {
+        return repairRepository.findById(id)
+                .map(repairMapper::toRepairWithClientsDTO)
+                .orElseThrow(() -> new RepairNotFoundException("Repair with id: " + id + " not found"));
+    }
+
+    @Override
     public RepairDTO findRepairByNumber(String number) {
         return repairRepository.findByNumber(number)
                 .map(repairMapper::toRepairDTO)
@@ -65,7 +74,16 @@ public class RepairServiceImpl implements RepairService {
     }
 
     @Override
+    @Transactional
     public RepairDTO save(Repair repair) {
+        // Look up existing vehicle and assign it to the repair
+        if (repair.getVehicle() != null && repair.getVehicle().getId() != null) {
+            Vehicle vehicle = vehicleRepository.findById(repair.getVehicle().getId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Vehicle with id: " + repair.getVehicle().getId() + " not found"));
+            repair.setVehicle(vehicle);
+        }
+
         Repair createdRepair = repairRepository.save(repair);
         return repairMapper.toRepairDTO(createdRepair);
     }

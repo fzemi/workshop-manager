@@ -1,77 +1,50 @@
 <script setup>
-import { useForm } from "vee-validate";
+import { useToast } from 'primevue/usetoast';
+import { useAuthStore } from '@/stores/AuthStore.js';
+import errorMapper from '@/libs/errors/errorCodeMapper.js';
 import { logInSchema } from "@/libs/schemas/logInSchemas.js";
-import { useAuthStore } from "@/stores/AuthStore.js";
-import { useToast } from "primevue/usetoast";
-import errorMapper from "@/libs/errors/errorCodeMapper.js";
-
-const { defineField, handleSubmit, errors } = useForm({
-  validationSchema: logInSchema
-});
-
-const [username] = defineField("username");
-const [password] = defineField("password");
+import { zodResolver } from '@primevue/forms/resolvers/zod';
+import Toast from 'primevue/toast';
 
 const toast = useToast();
+const resolver = zodResolver(logInSchema);
 
-const onSubmit = handleSubmit((values) => {
+const onFormSubmit = (e) => {
+  if (!e.valid) return;
+
   const authStore = useAuthStore();
-  const { username, password } = values;
-
-  return authStore.login(username, password)
+  const { username, password } = e.values;
+  authStore.login(username, password)
       .catch(error => {
         const { code, message } = errorMapper(error);
-        toast.add({ severity: "error", summary: `Błąd: ${code}`, detail: message, life: 5000 });
+        toast.add({ severity: 'error', summary: `Błąd: ${code}`, detail: message, life: 5000 });
       });
-});
+};
+
 
 </script>
 
 <template>
   <Toast/>
-  <form @submit="onSubmit" class="center">
-    <div class="surface-card p-4 shadow-2 border-round w-full lg:w-3">
-      <div class="text-center mb-5">
-        <div class="text-900 text-3xl font-medium mb-3">Workshop Manager</div>
-      </div>
-
-      <div>
-        <label for="username1" class="block text-900 font-medium mb-2">Nazwa użytkownika</label>
-        <InputText id="username1"
-                   type="text"
-                   class="w-full"
-                   v-model="username"
-                   :class="{'p-invalid': errors.username, 'mb-3': !errors.username}"
-        />
-        <small id="username-help" class="p-error">
-          {{ errors.username }}
-        </small>
-
-        <label for="password1"
-               class="block text-900 font-medium mb-2"
-               :class="{'mt-3': errors.username}"
-        >Hasło</label>
-        <InputText id="password1"
-                   type="password"
-                   class="w-full"
-                   v-model="password"
-                   :class="{'p-invalid': errors.password, 'mb-3': !errors.password}"
-        />
-        <small id="password-help" class="p-error ">
-          {{ errors.password }}
-        </small>
-
-        <Button label="Log In"
-                icon="pi pi-user"
-                class="w-full"
-                type="submit"
-                :class="{'mt-3': errors.password}"
-        >
-
-        </Button>
-      </div>
-    </div>
-  </form>
+  <div class="center">
+    <Form :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-56">
+      <FormField v-slot="$field" as="section" name="username" initialValue="" class="flex flex-col gap-2">
+        <InputText type="text" placeholder="Nazwa użytkownika"/>
+        <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{
+            $field.error?.message
+          }}
+        </Message>
+      </FormField>
+      <FormField v-slot="$field" as="section" name="password" initialValue="" class="flex flex-col gap-2">
+        <Password type="password" placeholder="Hasło" :feedback="false" toggleMask fluid/>
+        <Message v-if="$field?.invalid" severity="error" size="small" variant="simple">{{
+            $field.error?.message
+          }}
+        </Message>
+      </FormField>
+      <Button type="submit" label="Zaloguj"/>
+    </Form>
+  </div>
 </template>
 
 <style scoped>

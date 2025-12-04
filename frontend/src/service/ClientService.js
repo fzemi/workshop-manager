@@ -1,36 +1,90 @@
-const API_URL = import.meta.env.VITE_API_URL;
-const API_PORT = import.meta.env.VITE_API_PORT;
+import { httpService } from '@/api/index.js';
 
+/**
+ * Service for Client API operations
+ */
 const ClientService = {
-    getClientsData: async function () {
-        try {
-            const response = await fetch(`${API_URL}:${API_PORT}/api/v1/clients`);
-            const clients = await response.json();
-
-            clients.map((client) => {
-                client.birthDate = new Date(client.birthDate).toISOString().split('T')[0];
-                return client;
-            });
-
-            return clients;
-        } catch (error) {
-            throw new Error(error);
-        }
+    /**
+     * Get all clients
+     * @returns {Promise<Array>} List of clients
+     */
+    async getAll() {
+        const response = await httpService.get('/clients');
+        return response.data;
     },
-    getClientsIdAndName: async function () {
-        try {
-            const response = await fetch(`${API_URL}:${API_PORT}/api/v1/clients`);
-            const clients = await response.json();
 
-            return clients.map((client) => {
-                return {
-                    id: client.id,
-                    fullName: `${client.firstname} ${client.surname}`
-                };
-            });
-        } catch (error) {
-            throw new Error(error);
-        }
+    /**
+     * Get client by ID
+     * @param {number|string} id - Client ID
+     * @returns {Promise<Object>} Client data
+     */
+    async getById(id) {
+        const response = await httpService.get(`/clients/${id}`);
+        return response.data;
+    },
+
+    /**
+     * Search clients by surname
+     * @param {string} surname - Surname to search
+     * @returns {Promise<Array>} List of matching clients
+     */
+    async findBySurname(surname) {
+        const response = await httpService.get(`/clients/find/${surname}`);
+        return response.data;
+    },
+
+    /**
+     * Create a new client
+     * @param {Object} client - Client data
+     * @returns {Promise<Object>} Created client
+     */
+    async create(client) {
+        const response = await httpService.post('/clients', client);
+        return response.data;
+    },
+
+    /**
+     * Update client (full update)
+     * @param {number|string} id - Client ID
+     * @param {Object} client - Client data
+     * @returns {Promise<Object>} Updated client
+     */
+    async update(id, client) {
+        const response = await httpService.put(`/clients/${id}`, client);
+        return response.data;
+    },
+
+    /**
+     * Partial update client
+     * @param {number|string} id - Client ID
+     * @param {Object} updates - Fields to update
+     * @returns {Promise<Object>} Updated client
+     */
+    async patch(id, updates) {
+        const response = await httpService.patch(`/clients/${id}`, updates);
+        return response.data;
+    },
+
+    /**
+     * Delete client
+     * @param {number|string} id - Client ID
+     * @returns {Promise<void>}
+     */
+    async delete(id) {
+        await httpService.delete(`/clients/${id}`);
+    },
+
+    /**
+     * Get clients formatted for dropdown/select options
+     * @returns {Promise<Array>} List of { id, label } objects
+     */
+    async getOptions() {
+        const clients = await this.getAll();
+        return clients.map((client) => ({
+            id: client.id,
+            label: `${client.firstname} ${client.surname}`,
+            value: client.id,
+        }));
     },
 };
 

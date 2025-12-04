@@ -54,7 +54,26 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
+    @Transactional
     public ClientDTO save(Client client) {
+        // Look up existing vehicles and assign them to the client
+        if (client.getVehicles() != null && !client.getVehicles().isEmpty()) {
+            List<Vehicle> managedVehicles = client.getVehicles().stream()
+                    .filter(vehicle -> vehicle.getId() != null)
+                    .map(vehicle -> vehicleRepository.findById(vehicle.getId())
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                    "Vehicle with id: " + vehicle.getId() + " not found")))
+                    .toList();
+            client.setVehicles(new java.util.ArrayList<>(managedVehicles));
+
+            // Update the client list in each vehicle
+            managedVehicles.forEach(vehicle -> {
+                if (!vehicle.getClients().contains(client)) {
+                    vehicle.getClients().add(client);
+                }
+            });
+        }
+
         Client savedClient = clientRepository.save(client);
         return clientMapper.toClientDTO(savedClient);
     }
@@ -91,19 +110,32 @@ public class ClientServiceImpl implements ClientService {
                     Optional.ofNullable(client.getAddress()).ifPresent(existingClient::setAddress);
                     Optional.ofNullable(client.getBirthDate()).ifPresent(existingClient::setBirthDate);
 
-                    // add new vehicles to the client
-                    if (client.getVehicles() != null && !client.getVehicles().isEmpty()) {
-                        List<Long> existingClientVehicleIds = existingClient.getVehicles().stream()
+                    // Replace vehicles - handle additions and removals
+                    if (client.getVehicles() != null) {
+                        // Get IDs of vehicles to keep
+                        List<Long> newVehicleIds = client.getVehicles().stream()
                                 .map(Vehicle::getId)
+                                .filter(vehicleId -> vehicleId != null)
                                 .toList();
 
-                        client.getVehicles().forEach(vehicle -> {
-                            if (!existingClientVehicleIds.contains(vehicle.getId())) {
-                                Optional<Vehicle> foundVehicle = vehicleRepository.findById(vehicle.getId());
-                                foundVehicle.ifPresent(existingClient.getVehicles()::add);
+                        // Remove client from vehicles that are no longer assigned
+                        List<Vehicle> vehiclesToRemove = existingClient.getVehicles().stream()
+                                .filter(v -> !newVehicleIds.contains(v.getId()))
+                                .toList();
+                        vehiclesToRemove.forEach(vehicle -> {
+                            vehicle.getClients().remove(existingClient);
+                            existingClient.getVehicles().remove(vehicle);
+                        });
 
-                                // update the client list in the vehicle
-                                foundVehicle.ifPresent(value -> value.getClients().add(existingClient));
+                        // Add new vehicles
+                        newVehicleIds.forEach(vehicleId -> {
+                            boolean alreadyExists = existingClient.getVehicles().stream()
+                                    .anyMatch(v -> v.getId().equals(vehicleId));
+                            if (!alreadyExists) {
+                                vehicleRepository.findById(vehicleId).ifPresent(vehicle -> {
+                                    existingClient.getVehicles().add(vehicle);
+                                    vehicle.getClients().add(existingClient);
+                                });
                             }
                         });
                     }

@@ -1,9 +1,9 @@
-import * as Yup from "yup";
+import { z } from "zod";
 import { password, username } from "@/libs/common-schemas.js";
 
-const logInSchema = Yup.object().shape({
-    username: username.required("Nazwa użytkownika jest wymagana."),
-    password: password.required("Hasło jest wymagane.")
+const logInSchema = z.object({
+    username: username.nonempty("Nazwa użytkownika jest wymagana."),
+    password: password.nonempty("Hasło jest wymagane.")
 });
 
 export { logInSchema };

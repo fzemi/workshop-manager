@@ -1,4 +1,4 @@
-import * as Yup from 'yup';
+import { z } from 'zod';
 
 /**
  * Common schemas for frontend
@@ -7,21 +7,21 @@ import * as Yup from 'yup';
 /**
  * Universal props
  */
-const ID = Yup
+const ID = z
     .number()
-    .integer();
+    .int();
 
 /**
  * Users props
  */
-const email = Yup
+const email = z
     .string()
     .email()
     .trim();
-const username = Yup
+const username = z
     .string()
     .trim();
-const password = Yup
+const password = z
     .string()
     .trim();
 

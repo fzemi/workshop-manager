@@ -27,6 +27,13 @@ public interface RepairService {
     RepairDTO findRepairById(Long id);
 
     /**
+     * @param id repair's id
+     * @return repair with the given id including associated clients
+     * @throws com.fzemi.workshopmanager.repair.exception.RepairNotFoundException if repair with the given id does not exist
+     */
+    RepairWithClientsDTO findRepairByIdWithClients(Long id);
+
+    /**
      * @param number repair's number
      * @return repair with the given repair number
      * @throws com.fzemi.workshopmanager.repair.exception.RepairNotFoundException if repair with the given number does not exist

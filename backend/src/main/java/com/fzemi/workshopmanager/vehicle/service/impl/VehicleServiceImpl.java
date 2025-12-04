@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,7 +62,26 @@ public class VehicleServiceImpl implements VehicleService {
     }
 
     @Override
+    @Transactional
     public VehicleDTO save(Vehicle vehicle) {
+        // Look up existing clients and assign them to the vehicle
+        if (vehicle.getClients() != null && !vehicle.getClients().isEmpty()) {
+            List<Client> managedClients = vehicle.getClients().stream()
+                    .filter(client -> client.getId() != null)
+                    .map(client -> clientRepository.findById(client.getId())
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                    "Client with id: " + client.getId() + " not found")))
+                    .toList();
+            vehicle.setClients(new ArrayList<>(managedClients));
+
+            // Update the vehicle list in each client
+            managedClients.forEach(client -> {
+                if (!client.getVehicles().contains(vehicle)) {
+                    client.getVehicles().add(vehicle);
+                }
+            });
+        }
+
         Vehicle savedVehicle = vehicleRepository.save(vehicle);
         return vehicleMapper.toVehicleDTO(savedVehicle);
     }
@@ -94,19 +114,32 @@ public class VehicleServiceImpl implements VehicleService {
                     Optional.ofNullable(vehicle.getFuelType()).ifPresent(existingVehicle::setFuelType);
                     Optional.ofNullable(vehicle.getPower()).ifPresent(existingVehicle::setPower);
 
-                    // add new clients to the vehicle
-                    if (vehicle.getClients() != null && !vehicle.getClients().isEmpty()) {
-                        List<Long> existingClientsIds = existingVehicle.getClients().stream()
+                    // Replace clients - handle additions and removals
+                    if (vehicle.getClients() != null) {
+                        // Get IDs of clients to keep
+                        List<Long> newClientIds = vehicle.getClients().stream()
                                 .map(Client::getId)
+                                .filter(clientId -> clientId != null)
                                 .toList();
 
-                        vehicle.getClients().forEach(client -> {
-                            if (!existingClientsIds.contains(client.getId())) {
-                                Optional<Client> foundClient = clientRepository.findById(client.getId());
-                                foundClient.ifPresent(existingVehicle.getClients()::add);
+                        // Remove vehicle from clients that are no longer assigned
+                        List<Client> clientsToRemove = existingVehicle.getClients().stream()
+                                .filter(c -> !newClientIds.contains(c.getId()))
+                                .toList();
+                        clientsToRemove.forEach(client -> {
+                            client.getVehicles().remove(existingVehicle);
+                            existingVehicle.getClients().remove(client);
+                        });
 
-                                // update the vehicle list in the client
-                                foundClient.ifPresent(value -> value.getVehicles().add(existingVehicle));
+                        // Add new clients
+                        newClientIds.forEach(clientId -> {
+                            boolean alreadyExists = existingVehicle.getClients().stream()
+                                    .anyMatch(c -> c.getId().equals(clientId));
+                            if (!alreadyExists) {
+                                clientRepository.findById(clientId).ifPresent(client -> {
+                                    existingVehicle.getClients().add(client);
+                                    client.getVehicles().add(existingVehicle);
+                                });
                             }
                         });
                     }

@@ -47,6 +47,6 @@ public class Repair {
 
     @JsonIgnore
     public List<Client> getClients() {
-        return vehicle.getClients();
+        return vehicle != null ? vehicle.getClients() : List.of();
     }
 }
