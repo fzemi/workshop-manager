@@ -46,6 +46,7 @@ export function parseDate(dateString) {
 
 /**
  * Formats a date to ISO string (YYYY-MM-DD) for API requests
+ * Uses local date components to avoid timezone shifts
  * @param {Date|string|null} date - Date to format
  * @returns {string} ISO date string or empty string if invalid
  */
@@ -56,7 +57,11 @@ export function toISODateString(date) {
     
     if (isNaN(d.getTime())) return '';
     
-    return d.toISOString().split('T')[0];
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
 }
 
 /**

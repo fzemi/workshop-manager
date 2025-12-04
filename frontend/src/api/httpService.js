@@ -11,6 +11,100 @@ export const httpService = {
     put: request('PUT'),
     patch: request('PATCH'),
     delete: request('DELETE'),
+    
+    /**
+     * Upload a file using FormData
+     * @param {string} endpoint - API endpoint
+     * @param {FormData} formData - FormData containing file(s)
+     * @param {Function} onProgress - Optional progress callback (0-100)
+     * @returns {Promise<Object>} Response with data and status
+     */
+    uploadFile: async (endpoint, formData, onProgress = null) => {
+        const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+        
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            
+            xhr.open('POST', url);
+            
+            // Set auth header
+            const { user } = useAuthStore();
+            if (user?.token) {
+                xhr.setRequestHeader('Authorization', `Bearer ${user.token}`);
+            }
+            
+            // Progress tracking
+            if (onProgress) {
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const percent = Math.round((event.loaded / event.total) * 100);
+                        onProgress(percent);
+                    }
+                };
+            }
+            
+            xhr.onload = () => {
+                const text = xhr.responseText;
+                const data = text ? JSON.parse(text) : null;
+                
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    resolve({ data, status: xhr.status });
+                } else {
+                    const { user, logout } = useAuthStore();
+                    if ([401, 403].includes(xhr.status) && user) {
+                        logout();
+                    }
+                    reject({
+                        data,
+                        status: xhr.status,
+                        message: data?.message || 'Wystąpił błąd podczas przesyłania pliku',
+                    });
+                }
+            };
+            
+            xhr.onerror = () => {
+                reject({
+                    data: null,
+                    status: 0,
+                    message: 'Błąd połączenia z serwerem',
+                });
+            };
+            
+            xhr.send(formData);
+        });
+    },
+    
+    /**
+     * Download a file as blob
+     * @param {string} endpoint - API endpoint
+     * @returns {Promise<Blob>} File blob
+     */
+    downloadBlob: async (endpoint) => {
+        const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+        
+        const { user, logout } = useAuthStore();
+        const headers = user?.token ? { Authorization: `Bearer ${user.token}` } : {};
+        
+        const response = await fetch(url, { headers });
+        
+        if (!response.ok) {
+            if ([401, 403].includes(response.status) && user) {
+                logout();
+            }
+            
+            // Try to parse error as JSON
+            const text = await response.text();
+            const data = text ? JSON.parse(text) : null;
+            
+            return Promise.reject({
+                data,
+                status: response.status,
+                message: data?.message || 'Wystąpił błąd podczas pobierania pliku',
+            });
+        }
+        
+        return response.blob();
+    },
 };
 
 /**

@@ -24,7 +24,6 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -65,8 +64,7 @@ public class LocalFileStorageServiceImpl implements FileStorageService {
     @Transactional
     public void uploadFile(
             Long repairId,
-            MultipartFile file,
-            String tags
+            MultipartFile file
     ) {
         try {
             if (file.isEmpty()) {
@@ -92,11 +90,8 @@ public class LocalFileStorageServiceImpl implements FileStorageService {
             String fileUrl = baseFileUrl + rootLocation + "/" + repairEntity.getNumber() + "/" + filename;
             Path newFilePath = Paths.get(destinationFile.getParent() + "/" + repairEntity.getNumber() + "/" + filename);
 
-            // prepare tags
-            List<String> separatedTags = (tags == null || tags.isEmpty()) ? new ArrayList<>() : List.of(tags.split(","));
-            List<FileTags> fileTags = separatedTags.stream()
-                    .map(FileTags::valueOf)
-                    .toList();
+            // Auto-detect file type based on content type
+            List<FileTags> fileTags = detectFileTags(file.getContentType());
 
             Files.createDirectories(newFilePath.getParent());
 
@@ -122,9 +117,26 @@ public class LocalFileStorageServiceImpl implements FileStorageService {
         }
     }
 
+    /**
+     * Auto-detect file tags based on content type.
+     * Images (image/*) get IMAGE tag, all others get DOCUMENT tag.
+     */
+    private List<FileTags> detectFileTags(String contentType) {
+        if (contentType != null && contentType.startsWith("image/")) {
+            return List.of(FileTags.IMAGE);
+        }
+        return List.of(FileTags.DOCUMENT);
+    }
+
     @Override
     public File save(File file) {
         return fileRepository.save(file);
+    }
+
+    @Override
+    public File getFileById(Long fileId) {
+        return fileRepository.findById(fileId)
+                .orElseThrow(() -> new FileUploadException("File not found with id: " + fileId, ErrorCodes.FILE_NOT_FOUND));
     }
 
     @Override

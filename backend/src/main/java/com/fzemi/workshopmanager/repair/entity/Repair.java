@@ -1,12 +1,12 @@
 package com.fzemi.workshopmanager.repair.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fzemi.workshopmanager.client.entity.Client;
 import com.fzemi.workshopmanager.repair.config.RepairTypeFormat;
 import com.fzemi.workshopmanager.vehicle.entity.Vehicle;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = "clients")
 @Builder
 @Entity
 @Table(name = "repairs")
@@ -41,12 +41,12 @@ public class Repair {
     @Enumerated(EnumType.STRING)
     private RepairTypeFormat type;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "vehicle_id")
     private Vehicle vehicle;
 
-    @JsonIgnore
-    public List<Client> getClients() {
-        return vehicle != null ? vehicle.getClients() : List.of();
-    }
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "repair_clients")
+    @Builder.Default
+    private List<Client> clients = new ArrayList<>();
 }

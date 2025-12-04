@@ -56,25 +56,24 @@ public class ClientServiceImpl implements ClientService {
     @Override
     @Transactional
     public ClientDTO save(Client client) {
-        // Look up existing vehicles and assign them to the client
-        if (client.getVehicles() != null && !client.getVehicles().isEmpty()) {
-            List<Vehicle> managedVehicles = client.getVehicles().stream()
-                    .filter(vehicle -> vehicle.getId() != null)
-                    .map(vehicle -> vehicleRepository.findById(vehicle.getId())
-                            .orElseThrow(() -> new IllegalArgumentException(
-                                    "Vehicle with id: " + vehicle.getId() + " not found")))
-                    .toList();
-            client.setVehicles(new java.util.ArrayList<>(managedVehicles));
+        // Save the client first
+        Client savedClient = clientRepository.save(client);
 
-            // Update the client list in each vehicle
-            managedVehicles.forEach(vehicle -> {
-                if (!vehicle.getClients().contains(client)) {
-                    vehicle.getClients().add(client);
-                }
-            });
+        // Client is the inverse side - update vehicles (owning side) to establish relationship
+        if (client.getVehicles() != null && !client.getVehicles().isEmpty()) {
+            client.getVehicles().stream()
+                    .filter(vehicle -> vehicle.getId() != null)
+                    .forEach(vehicle -> {
+                        Vehicle managedVehicle = vehicleRepository.findById(vehicle.getId())
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                        "Vehicle with id: " + vehicle.getId() + " not found"));
+                        if (!managedVehicle.getClients().contains(savedClient)) {
+                            managedVehicle.getClients().add(savedClient);
+                            vehicleRepository.save(managedVehicle);
+                        }
+                    });
         }
 
-        Client savedClient = clientRepository.save(client);
         return clientMapper.toClientDTO(savedClient);
     }
 
@@ -110,32 +109,25 @@ public class ClientServiceImpl implements ClientService {
                     Optional.ofNullable(client.getAddress()).ifPresent(existingClient::setAddress);
                     Optional.ofNullable(client.getBirthDate()).ifPresent(existingClient::setBirthDate);
 
-                    // Replace vehicles - handle additions and removals
+                    // Replace vehicles - Client is inverse side, update via Vehicle (owning side)
                     if (client.getVehicles() != null) {
-                        // Get IDs of vehicles to keep
                         List<Long> newVehicleIds = client.getVehicles().stream()
                                 .map(Vehicle::getId)
                                 .filter(vehicleId -> vehicleId != null)
                                 .toList();
 
-                        // Remove client from vehicles that are no longer assigned
-                        List<Vehicle> vehiclesToRemove = existingClient.getVehicles().stream()
+                        // Remove client from vehicles no longer selected
+                        existingClient.getVehicles().stream()
                                 .filter(v -> !newVehicleIds.contains(v.getId()))
-                                .toList();
-                        vehiclesToRemove.forEach(vehicle -> {
-                            vehicle.getClients().remove(existingClient);
-                            existingClient.getVehicles().remove(vehicle);
-                        });
+                                .forEach(vehicle -> vehicle.getClients().remove(existingClient));
 
-                        // Add new vehicles
+                        // Add client to newly selected vehicles
                         newVehicleIds.forEach(vehicleId -> {
-                            boolean alreadyExists = existingClient.getVehicles().stream()
-                                    .anyMatch(v -> v.getId().equals(vehicleId));
-                            if (!alreadyExists) {
-                                vehicleRepository.findById(vehicleId).ifPresent(vehicle -> {
-                                    existingClient.getVehicles().add(vehicle);
-                                    vehicle.getClients().add(existingClient);
-                                });
+                            Vehicle vehicle = vehicleRepository.findById(vehicleId)
+                                    .orElseThrow(() -> new IllegalArgumentException(
+                                            "Vehicle with id: " + vehicleId + " not found"));
+                            if (!vehicle.getClients().contains(existingClient)) {
+                                vehicle.getClients().add(existingClient);
                             }
                         });
                     }

@@ -6,6 +6,7 @@ import { zodResolver } from '@primevue/forms/resolvers/zod';
 import ClientService from '@/service/ClientService.js';
 import VehicleService from '@/service/VehicleService.js';
 import { clientSchema, clientDefaultValues } from '@/libs/schemas/clientSchemas.js';
+import { toISODateString } from '@/libs/dateUtils.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -86,7 +87,7 @@ async function onFormSubmit({ valid, values }) {
         // Prepare data for API - convert vehicle IDs to objects with id property
         const clientData = {
             ...values,
-            birthDate: values.birthDate ? values.birthDate.toISOString().split('T')[0] : null,
+            birthDate: toISODateString(values.birthDate) || null,
             vehicles: values.vehicles?.map(vehicleId => ({ id: vehicleId })) || [],
         };
 
@@ -211,7 +212,8 @@ function goBack() {
                     <FormField v-slot="$field" name="birthDate">
                         <label class="font-medium">Data urodzenia</label>
                         <DatePicker
-                            v-bind="$field"
+                            :modelValue="$field.value"
+                            @update:modelValue="(val) => { $field.value = val; $field.onInput?.({ target: { value: val } }); }"
                             class="w-full"
                             dateFormat="dd.mm.yy"
                             showIcon

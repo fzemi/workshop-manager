@@ -10,9 +10,11 @@ import java.util.List;
 public interface FileStorageService {
     void init();
 
-    void uploadFile(Long repairId, MultipartFile file, String tags);
+    void uploadFile(Long repairId, MultipartFile file);
 
     File save(File file);
+
+    File getFileById(Long fileId);
 
     Path load(String filename);
 

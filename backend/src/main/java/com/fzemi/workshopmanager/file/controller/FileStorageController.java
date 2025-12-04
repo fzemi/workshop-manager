@@ -2,9 +2,12 @@ package com.fzemi.workshopmanager.file.controller;
 
 import com.fzemi.workshopmanager.file.dto.FileDTO;
 import com.fzemi.workshopmanager.file.dto.FileMapper;
+import com.fzemi.workshopmanager.file.entity.File;
 import com.fzemi.workshopmanager.file.service.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,8 +34,18 @@ public class FileStorageController {
             @PathVariable Long repairId,
             @PathVariable Long fileId
     ) {
-        Resource file = fileStorageService.loadAsResource(fileId);
-        return ResponseEntity.ok(file);
+        File fileEntity = fileStorageService.getFileById(fileId);
+        Resource resource = fileStorageService.loadAsResource(fileId);
+        
+        String contentType = fileEntity.getContentType();
+        if (contentType == null || contentType.isEmpty()) {
+            contentType = "application/octet-stream";
+        }
+        
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileEntity.getFilename() + "\"")
+                .body(resource);
     }
 
     @GetMapping
@@ -46,10 +59,9 @@ public class FileStorageController {
     @PostMapping
     public ResponseEntity uploadFile(
             @PathVariable Long repairId,
-            @RequestParam("tags") String tags,
             @RequestParam("file") MultipartFile file
     ) {
-        fileStorageService.uploadFile(repairId, file, tags);
+        fileStorageService.uploadFile(repairId, file);
         return ResponseEntity.ok().build();
     }
 

@@ -37,6 +37,9 @@ export const repairSchema = z.object({
             invalid_type_error: 'Wybierz pojazd' 
         })
         .positive('Wybierz pojazd'),
+    clientIds: z
+        .array(z.number())
+        .default([]),
 }).refine(
     (data) => data.expectedEndDate >= data.startDate,
     {
@@ -54,4 +57,5 @@ export const repairDefaultValues = {
     expectedEndDate: null,
     type: null,
     vehicleId: null,
+    clientIds: [],
 };

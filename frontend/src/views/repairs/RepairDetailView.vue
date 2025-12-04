@@ -3,8 +3,12 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
 import RepairService from '@/service/RepairService.js';
+import FileService from '@/service/FileService.js';
 import { formatDate } from '@/libs/dateUtils.js';
 import { getRepairTypeLabel } from '@/libs/constants.js';
+import WMFileGallery from '@/components/shared/WMFileGallery.vue';
+import WMFileUploadDialog from '@/components/shared/WMFileUploadDialog.vue';
+import WMConfirmDialog from '@/components/shared/WMConfirmDialog.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -12,6 +16,13 @@ const toast = useToast();
 
 const repair = ref(null);
 const loading = ref(true);
+
+// File management state
+const files = ref([]);
+const filesLoading = ref(false);
+const uploadDialogVisible = ref(false);
+const deleteDialog = ref(null);
+const fileToDelete = ref(null);
 
 const repairId = computed(() => route.params.id);
 
@@ -25,6 +36,7 @@ const clientsList = computed(() => {
 
 onMounted(async () => {
     await loadRepair();
+    await loadFiles();
 });
 
 async function loadRepair() {
@@ -42,6 +54,111 @@ async function loadRepair() {
     } finally {
         loading.value = false;
     }
+}
+
+async function loadFiles() {
+    filesLoading.value = true;
+    try {
+        files.value = await FileService.getByRepairId(repairId.value);
+    } catch (error) {
+        toast.add({
+            severity: 'error',
+            summary: 'Błąd',
+            detail: 'Nie udało się pobrać listy załączników',
+            life: 3000,
+        });
+    } finally {
+        filesLoading.value = false;
+    }
+}
+
+/**
+ * Open file in new browser tab as blob
+ */
+async function openFile(file) {
+    try {
+        const blob = await FileService.download(repairId.value, file.id);
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        // Note: We don't revoke the URL immediately as the new tab needs it
+        // Browser will handle cleanup when tab is closed
+    } catch (error) {
+        toast.add({
+            severity: 'error',
+            summary: 'Błąd',
+            detail: 'Nie udało się otworzyć pliku',
+            life: 3000,
+        });
+    }
+}
+
+/**
+ * Download file to local drive
+ */
+async function downloadFile(file) {
+    try {
+        const blob = await FileService.download(repairId.value, file.id);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        toast.add({
+            severity: 'success',
+            summary: 'Sukces',
+            detail: 'Plik został pobrany',
+            life: 3000,
+        });
+    } catch (error) {
+        toast.add({
+            severity: 'error',
+            summary: 'Błąd',
+            detail: 'Nie udało się pobrać pliku',
+            life: 3000,
+        });
+    }
+}
+
+/**
+ * Show delete confirmation dialog
+ */
+function confirmDeleteFile(file) {
+    fileToDelete.value = file;
+    deleteDialog.value.show(file);
+}
+
+/**
+ * Delete file after confirmation
+ */
+async function deleteFile(file) {
+    try {
+        await FileService.delete(repairId.value, file.id);
+        toast.add({
+            severity: 'success',
+            summary: 'Sukces',
+            detail: 'Plik został usunięty',
+            life: 3000,
+        });
+        await loadFiles();
+    } catch (error) {
+        toast.add({
+            severity: 'error',
+            summary: 'Błąd',
+            detail: 'Nie udało się usunąć pliku',
+            life: 3000,
+        });
+    }
+}
+
+/**
+ * Handle successful file upload
+ */
+function onFilesUploaded() {
+    loadFiles();
 }
 
 function goBack() {
@@ -175,21 +292,49 @@ function goToEdit() {
                 </template>
             </Card>
 
-            <!-- Pliki (placeholder na przyszłość) -->
+            <!-- Załączniki -->
             <Card class="md:col-span-2">
                 <template #title>
-                    <div class="flex items-center gap-2">
-                        <i class="pi pi-file"></i>
-                        Załączniki
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="pi pi-file"></i>
+                            Załączniki
+                        </div>
+                        <Button
+                            label="Dodaj pliki"
+                            icon="pi pi-plus"
+                            size="small"
+                            @click="uploadDialogVisible = true"
+                        />
                     </div>
                 </template>
                 <template #content>
-                    <p class="text-surface-500 italic">
-                        Funkcjonalność załączników zostanie dodana w przyszłości.
-                    </p>
+                    <WMFileGallery
+                        :files="files"
+                        :loading="filesLoading"
+                        :repairId="repairId"
+                        @open="openFile"
+                        @download="downloadFile"
+                        @delete="confirmDeleteFile"
+                    />
                 </template>
             </Card>
         </div>
+
+        <!-- File Upload Dialog -->
+        <WMFileUploadDialog
+            v-model:visible="uploadDialogVisible"
+            :repairId="repairId"
+            @uploaded="onFilesUploaded"
+        />
+
+        <!-- Delete Confirmation Dialog -->
+        <WMConfirmDialog
+            ref="deleteDialog"
+            header="Usuń plik"
+            message="Czy na pewno chcesz usunąć ten plik? Tej operacji nie można cofnąć."
+            @confirm="deleteFile"
+        />
 
         <Toast />
     </div>

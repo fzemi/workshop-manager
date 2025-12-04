@@ -7,6 +7,7 @@ import VehicleService from '@/service/VehicleService.js';
 import ClientService from '@/service/ClientService.js';
 import { vehicleSchema, vehicleDefaultValues } from '@/libs/schemas/vehicleSchemas.js';
 import { FUEL_TYPE_OPTIONS } from '@/libs/constants.js';
+import { toISODateString } from '@/libs/dateUtils.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -85,7 +86,7 @@ async function onFormSubmit({ valid, values }) {
     // Prepare data for API - convert client IDs to objects with id property
     const vehicleData = {
       ...values,
-      productionDate: values.productionDate ? values.productionDate.toISOString().split('T')[0] : null,
+      productionDate: toISODateString(values.productionDate) || null,
       clients: values.clients?.map(clientId => ({ id: clientId })) || [],
     };
 
@@ -210,7 +211,8 @@ function goBack() {
           <FormField v-slot="$field" name="productionDate">
             <label class="font-medium">Data produkcji</label>
             <DatePicker
-                v-bind="$field"
+                :modelValue="$field.value"
+                @update:modelValue="(val) => { $field.value = val; $field.onInput?.({ target: { value: val } }); }"
                 class="w-full"
                 dateFormat="dd.mm.yy"
                 showIcon

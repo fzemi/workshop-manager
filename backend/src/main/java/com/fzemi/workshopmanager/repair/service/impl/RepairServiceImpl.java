@@ -1,5 +1,7 @@
 package com.fzemi.workshopmanager.repair.service.impl;
 
+import com.fzemi.workshopmanager.client.entity.Client;
+import com.fzemi.workshopmanager.client.repository.ClientRepository;
 import com.fzemi.workshopmanager.file.service.FileStorageService;
 import com.fzemi.workshopmanager.repair.dto.RepairDTO;
 import com.fzemi.workshopmanager.repair.dto.RepairMapper;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +24,7 @@ import java.util.Optional;
 public class RepairServiceImpl implements RepairService {
     private final RepairRepository repairRepository;
     private final VehicleRepository vehicleRepository;
+    private final ClientRepository clientRepository;
     private final RepairMapper repairMapper;
     private final FileStorageService fileStorageService;
 
@@ -28,10 +32,12 @@ public class RepairServiceImpl implements RepairService {
     public RepairServiceImpl(
             RepairRepository repairRepository,
             VehicleRepository vehicleRepository,
+            ClientRepository clientRepository,
             RepairMapper repairMapper,
             FileStorageService fileStorageService) {
         this.repairRepository = repairRepository;
         this.vehicleRepository = vehicleRepository;
+        this.clientRepository = clientRepository;
         this.repairMapper = repairMapper;
         this.fileStorageService = fileStorageService;
     }
@@ -84,6 +90,17 @@ public class RepairServiceImpl implements RepairService {
             repair.setVehicle(vehicle);
         }
 
+        // Look up existing clients and assign them to the repair
+        if (repair.getClients() != null && !repair.getClients().isEmpty()) {
+            List<Client> managedClients = repair.getClients().stream()
+                    .filter(client -> client.getId() != null)
+                    .map(client -> clientRepository.findById(client.getId())
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                    "Client with id: " + client.getId() + " not found")))
+                    .toList();
+            repair.setClients(new ArrayList<>(managedClients));
+        }
+
         Repair createdRepair = repairRepository.save(repair);
         return repairMapper.toRepairDTO(createdRepair);
     }
@@ -102,6 +119,21 @@ public class RepairServiceImpl implements RepairService {
                         Optional<Vehicle> foundVehicle = vehicleRepository.findById(repair.getVehicle().getId());
 
                         foundVehicle.ifPresent(existingRepair::setVehicle);
+                    }
+
+                    // Replace clients
+                    if (repair.getClients() != null) {
+                        List<Long> newClientIds = repair.getClients().stream()
+                                .map(Client::getId)
+                                .filter(clientId -> clientId != null)
+                                .toList();
+
+                        List<Client> newClients = newClientIds.stream()
+                                .map(clientId -> clientRepository.findById(clientId)
+                                        .orElseThrow(() -> new IllegalArgumentException(
+                                                "Client with id: " + clientId + " not found")))
+                                .toList();
+                        existingRepair.setClients(new ArrayList<>(newClients));
                     }
 
                     return repairRepository.save(existingRepair);

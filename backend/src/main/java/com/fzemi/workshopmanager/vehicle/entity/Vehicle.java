@@ -5,6 +5,7 @@ import com.fzemi.workshopmanager.vehicle.config.FuelFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -46,10 +47,7 @@ public class Vehicle {
     private Integer power;
 
     @ManyToMany
-    @JoinTable(
-            name = "vehicle_client",
-            joinColumns = @JoinColumn(name = "vehicle_id"),
-            inverseJoinColumns = @JoinColumn(name = "client_id")
-    )
-    private List<Client> clients;
+    @JoinTable(name = "vehicle_owners")
+    @Builder.Default
+    private List<Client> clients = new ArrayList<>();
 }

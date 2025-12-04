@@ -43,7 +43,7 @@ public class RepairMapper {
         VehicleWithoutClientsDTO vehicle = repair.getVehicle() != null ?
                 vehicleMapper.toVehicleWithoutClientsDTO(repair.getVehicle()) : null;
 
-        List<ClientWithoutVehiclesDTO> clients = vehicle != null ?
+        List<ClientWithoutVehiclesDTO> clients = repair.getClients() != null ?
                 repair.getClients().stream().map(clientMapper::toClientWithoutVehiclesDTO).toList() : Collections.emptyList();
 
         return RepairWithClientsDTO.builder()

@@ -1,6 +1,8 @@
 package com.fzemi.workshopmanager.security;
 
 import com.fzemi.workshopmanager.security.service.impl.JwtService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,7 +57,19 @@ public class jwtFilter extends OncePerRequestFilter {
         }
 
         jwt = authHeader.substring(7);
-        username = jwtService.extractUsername(jwt);
+        
+        try {
+            username = jwtService.extractUsername(jwt);
+        } catch (ExpiredJwtException e) {
+            // Token expired - continue filter chain without authentication
+            // This will result in 401/403 from Spring Security
+            filterChain.doFilter(request, response);
+            return;
+        } catch (JwtException e) {
+            // Invalid token - continue filter chain without authentication
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);

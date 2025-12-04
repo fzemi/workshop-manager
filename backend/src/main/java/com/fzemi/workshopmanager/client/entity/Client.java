@@ -1,9 +1,11 @@
 package com.fzemi.workshopmanager.client.entity;
 
+import com.fzemi.workshopmanager.repair.entity.Repair;
 import com.fzemi.workshopmanager.vehicle.entity.Vehicle;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -11,7 +13,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = "vehicles")
+@EqualsAndHashCode(exclude = {"vehicles", "repairs"})
 @Builder
 @Entity
 @Table(name = "clients")
@@ -46,5 +48,10 @@ public class Client {
     private Date birthDate;
 
     @ManyToMany(mappedBy = "clients")
-    private List<Vehicle> vehicles;
+    @Builder.Default
+    private List<Vehicle> vehicles = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "clients")
+    @Builder.Default
+    private List<Repair> repairs = new ArrayList<>();
 }
