@@ -22,6 +22,10 @@ const errorCodes = {
     FILE_ALREADY_EXISTS: { code: 1502, message: "Plik już istnieje." },
     NO_FILE_ACCESS: { code: 1503, message: "Brak dostępu do pliku." },
 
+    // 16xx - DOCUMENT TEMPLATE ERRORS
+    TEMPLATE_NOT_FOUND: { code: 1600, message: "Szablon dokumentu nie został znaleziony." },
+    TEMPLATE_READ_ERROR: { code: 1601, message: "Błąd odczytu szablonu dokumentu." },
+
     // OTHER
     NO_CODE: { code: 0, message: "Brak kodu." }
 };

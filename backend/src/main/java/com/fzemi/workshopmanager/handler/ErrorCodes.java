@@ -24,6 +24,9 @@ public enum ErrorCodes {
     FILE_NOT_FOUND(1501, NOT_FOUND, "File not found"),
     FILE_ALREADY_EXISTS(1502, CONFLICT, "File already exists"),
     NO_FILE_ACCESS(1503, FORBIDDEN, "No access to file"),
+    // 16xx - DOCUMENT TEMPLATE ERRORS
+    TEMPLATE_NOT_FOUND(1600, NOT_FOUND, "Template not found"),
+    TEMPLATE_READ_ERROR(1601, INTERNAL_SERVER_ERROR, "Template read error"),
     // OTHER
     NO_CODE(0, NOT_IMPLEMENTED, "No code");
 

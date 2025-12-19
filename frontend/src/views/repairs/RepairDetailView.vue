@@ -6,9 +6,12 @@ import RepairService from '@/service/RepairService.js';
 import FileService from '@/service/FileService.js';
 import { formatDate } from '@/libs/dateUtils.js';
 import { getRepairTypeLabel } from '@/libs/constants.js';
+import { mapRepairToDocumentData } from '@/libs/documentDataMapper.js';
 import WMFileGallery from '@/components/shared/WMFileGallery.vue';
 import WMFileUploadDialog from '@/components/shared/WMFileUploadDialog.vue';
 import WMConfirmDialog from '@/components/shared/WMConfirmDialog.vue';
+import WMDocumentSelectorDialog from '@/components/documents/WMDocumentSelectorDialog.vue';
+import WMDocumentPreviewDialog from '@/components/documents/WMDocumentPreviewDialog.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -24,6 +27,11 @@ const uploadDialogVisible = ref(false);
 const deleteDialog = ref(null);
 const fileToDelete = ref(null);
 
+// Document generation state
+const documentSelectorVisible = ref(false);
+const documentPreviewVisible = ref(false);
+const selectedTemplates = ref([]);
+
 const repairId = computed(() => route.params.id);
 
 const clientsList = computed(() => {
@@ -32,6 +40,25 @@ const clientsList = computed(() => {
         id: c.id,
         label: `${c.firstname} ${c.surname}`,
     })) || [];
+});
+
+/**
+ * Document data mapped from repair, first client, and vehicle
+ */
+const documentData = computed(() => {
+    if (!repair.value) return {};
+    
+    const client = repair.value.clients?.[0] || null;
+    const vehicle = repair.value.vehicle || null;
+    
+    return mapRepairToDocumentData(repair.value, client, vehicle);
+});
+
+/**
+ * Check if document generation is available (requires vehicle and at least one client)
+ */
+const canGenerateDocuments = computed(() => {
+    return repair.value?.vehicle && repair.value?.clients?.length > 0;
 });
 
 onMounted(async () => {
@@ -168,6 +195,21 @@ function goBack() {
 function goToEdit() {
     router.push(`/repairs/${repairId.value}/edit`);
 }
+
+/**
+ * Open document selector dialog
+ */
+function openDocumentGenerator() {
+    documentSelectorVisible.value = true;
+}
+
+/**
+ * Handle template selection from selector dialog
+ */
+function onTemplatesSelected(templates) {
+    selectedTemplates.value = templates;
+    documentPreviewVisible.value = true;
+}
 </script>
 
 <template>
@@ -183,7 +225,14 @@ function goToEdit() {
             <h1 class="text-2xl font-semibold text-surface-800 dark:text-surface-100">
                 Szczegóły naprawy
             </h1>
-            <div class="ml-auto">
+            <div class="ml-auto flex gap-2">
+                <Button
+                    label="Generuj dokumenty"
+                    icon="pi pi-file-export"
+                    severity="secondary"
+                    :disabled="!canGenerateDocuments"
+                    @click="openDocumentGenerator"
+                />
                 <Button
                     label="Edytuj"
                     icon="pi pi-pencil"
@@ -270,7 +319,7 @@ function goToEdit() {
                 <template #title>
                     <div class="flex items-center gap-2">
                         <i class="pi pi-users"></i>
-                        Klienci (właściciele pojazdu)
+                        Klienci
                     </div>
                 </template>
                 <template #content>
@@ -334,6 +383,19 @@ function goToEdit() {
             header="Usuń plik"
             message="Czy na pewno chcesz usunąć ten plik? Tej operacji nie można cofnąć."
             @confirm="deleteFile"
+        />
+
+        <!-- Document Selector Dialog -->
+        <WMDocumentSelectorDialog
+            v-model:visible="documentSelectorVisible"
+            @select="onTemplatesSelected"
+        />
+
+        <!-- Document Preview Dialog -->
+        <WMDocumentPreviewDialog
+            v-model:visible="documentPreviewVisible"
+            :templates="selectedTemplates"
+            :initial-data="documentData"
         />
 
         <Toast />
